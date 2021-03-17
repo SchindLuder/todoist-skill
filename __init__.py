@@ -16,7 +16,7 @@ class TodoistSkill(MycroftSkill):
 	
 	@intent_handler('lies_einkaufsliste.intent')
 	def handle_set_temperature(self, message):
-		self.speak_dialog("shoppingList.dialog")
+		self.speak_dialog("shoppingList.read")
 		
 			
 def create_skill():
