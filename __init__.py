@@ -16,12 +16,11 @@ class TodoistSkill(MycroftSkill):
 		self.api = todoist.TodoistAPI(self.settings.get('Todoist-API-Token'))
 	
 	@intent_handler('shoppinglist.read.intent')
-	def handle_set_temperature(self, message):
-		self.speak_dialog("shoppingList.read")
+	def handle_read_shoppinglist(self, message):
 		self.api.sync()	
 		
 		shoppinglist = self.api.projects.get(2174603341)
-		self.speak_dialog(str(shoppinglist['name']))
+		self.log.info(str(shoppinglist))
 					
 def create_skill():
 	return TodoistSkill()
