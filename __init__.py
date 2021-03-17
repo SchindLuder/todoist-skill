@@ -14,8 +14,10 @@ class Homematicip(MycroftSkill):
 	def initialize(self):
 		#self.clientPath = self.settings.get('HmipClientPath')
 	
-	#@intent_handler('homematicip.set.temperature.intent')
-	#def handle_set_temperature(self, message):
+	@intent_handler('lies_einkaufsliste.intent')
+	def handle_set_temperature(self, message):
+		self.speak_dialog("shoppingList.dialog")
+		
 			
 def create_skill():
 	return Homematicip()
