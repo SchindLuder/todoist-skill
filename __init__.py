@@ -19,9 +19,9 @@ class TodoistSkill(MycroftSkill):
 	def handle_set_temperature(self, message):
 		self.speak_dialog("shoppingList.read")
 		self.api.sync()	
-		for project in self.api.state['projects']:
-			self.speak_dialog(str(project['name']))
 		
-			
+		shoppinglist = self.api.projects.get(2174603341)
+		self.speak_dialog(str(shoppinglist.name))
+					
 def create_skill():
 	return TodoistSkill()
