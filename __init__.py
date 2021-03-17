@@ -7,7 +7,7 @@ import threading
 from math import ceil
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
 
-class Homematicip(MycroftSkill):
+class TodoistSkill(MycroftSkill):
 	def __init__(self):
 		MycroftSkill.__init__(self)
 		
@@ -20,4 +20,4 @@ class Homematicip(MycroftSkill):
 		
 			
 def create_skill():
-	return Homematicip()
+	return TodoistSkill()
