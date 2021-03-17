@@ -12,9 +12,9 @@ class TodoistSkill(MycroftSkill):
 		MycroftSkill.__init__(self)
 		
 	def initialize(self):
-		#self.clientPath = self.settings.get('HmipClientPath')
+		self.token = self.settings.get('Todoist-API-Token')
 	
-	@intent_handler('lies_einkaufsliste.intent')
+	@intent_handler('shoppinglist.read.intent')
 	def handle_set_temperature(self, message):
 		self.speak_dialog("shoppingList.read")
 		
