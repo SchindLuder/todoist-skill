@@ -5,46 +5,10 @@
                 "name": "Configuration",
                 "fields": [
                     {
-                        "name": "HmipClientPath",
+                        "name": "Todoist-API-Token",
                         "type": "text",
-                        "label": "Specify the local path of hmip_cli.py",
-                        "value": "/home/pi/mycroft-core/.venv/bin/hmip_cli.py"
-                    },
-                    {
-                        "name": "Arbeitszimmer",
-                        "type": "text",
-                        "label": "WorkingRoom - Group Id",
-                        "value": "7588b919-7e37-4f1f-99d9-5008d081e454"
-                    },
-                    {
-                        "name": "Bad",
-                        "type": "text",
-                        "label": "BathRoom - Group Id",
-                        "value": "c9b4d50b-51f0-41b3-80a0-600d78e57eb7"
-                    },
-                    {
-                        "name": "Esszimmer",
-                        "type": "text",
-                        "label": "Dining Room Group Id",
-                        "value": "d1cc4bc5-362a-4fbf-a1ab-cdc9c8a2eec0"
-                    },
-                    {
-                        "name": "Küche",
-                        "type": "text",
-                        "label": "Kitchen Group Id",
-                        "value": "6d2b96df-3835-4d32-9add-5039124e58b3"
-                    },
-                    {
-                        "name": "Schlafzimmer",
-                        "type": "text",
-                        "label": "Sleeping Room Group Id",
-                        "value": "44749dcc-c4d9-4601-b7c8-ff8fa9167a90"
-                    },
-                    {
-                        "name": "Wohnzimmer",
-                        "type": "text",
-                        "label": "Living Room Group Id",
-                        "value": "1e91bcd0-396d-4562-a8ad-e991a27ddcd7"
+                        "label": "Private Token for Todoist-API",
+                        "value": ""
                     }
                 ]
             }
