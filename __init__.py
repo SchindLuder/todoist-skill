@@ -21,7 +21,7 @@ class TodoistSkill(MycroftSkill):
 		self.api.sync()	
 		
 		shoppinglist = self.api.projects.get(2174603341)
-		self.speak_dialog(str(shoppinglist.name))
+		self.speak_dialog(str(shoppinglist['name']))
 					
 def create_skill():
 	return TodoistSkill()
