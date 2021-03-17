@@ -18,10 +18,8 @@ class TodoistSkill(MycroftSkill):
 	@intent_handler('shoppinglist.read.intent')
 	def handle_set_temperature(self, message):
 		self.speak_dialog("shoppingList.read")
-		self.api.sync()
-		full_name = self.api.state['user']['full_name']
-		self.speak_dialog(full_name)		
-		for project in api.state['projects']:
+		self.api.sync()	
+		for project in self.api.state['projects']:
 			self.speak_dialog(str(project['name']))
 		
 			
