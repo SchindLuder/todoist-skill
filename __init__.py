@@ -46,8 +46,8 @@ class TodoistSkill(MycroftSkill):
 		addItemToProject('Einkaufsliste', str(listItem))
 		
 		self.speak_dialog('project.added.item', {
-			'projectName': 'Einkaufsliste', 
-			'listItem' : str(listItem)
+			'project': 'Einkaufsliste', 
+			'item' : str(listItem)
 		})						
 		
 	@intent_handler('shoppinglist.does.contain.intent')
