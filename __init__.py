@@ -51,12 +51,7 @@ class TodoistSkill(MycroftSkill):
 				self.speak('und')
 				
 			self.log.info(str(item))
-			self.speak(str(item))
-			
-
-		for item in self.getContentListFromItems(openItems):
-			self.log.info(str(item))
-			self.speak(str(item))
+			self.speak(str(item))		
 					
 def create_skill():
 	return TodoistSkill()
