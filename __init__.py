@@ -15,6 +15,7 @@ class TodoistSkill(MycroftSkill):
 
 	def getOpenItemsOfProject(self, projectName):
 		project_id = self.getProjectIdByName(projectName)
+		self.log.info('project_Id of ' + projectName + '=' + project_id)
 		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , self.api['items']))
 
 	def addItemToProject(self, projectName, itemName):
@@ -33,14 +34,10 @@ class TodoistSkill(MycroftSkill):
 	
 	@intent_handler('shoppinglist.read.intent')
 	def handle_read_shoppinglist(self, message):
-		self.api.sync()	
-		
-		self.log.info('reading shopping list')
-		
+		self.api.sync()			
+		self.log.info('reading shopping list')		
 		openItems = self.getOpenItemsOfProject('Einkaufsliste')
-		self.log.info('got open items')
-		self.log.info(str(openItems))
-		
+		self.log.info('got open items')		
 		for item in self.getContentListFromItems(openItems):
 			self.log.info(str(item))
 			self.speak(str(item))
