@@ -47,11 +47,12 @@ class TodoistSkill(MycroftSkill):
 		self.log.info(str(numberOfItems) + ' open items found')
 		
 		for i, item in enumerate(itemNames):
-			if (i == (numberOfItems -1)) & (numberOfItems != 1):
-				self.speak('und')
-				
 			self.log.info(str(item))
 			
+			if (i == (numberOfItems -1)) & (numberOfItems != 1):
+				self.speak('und ' + str(item))
+				break
+				
 			if numberOfItems is 1:
 				self.speak('nur ' + str(item))			
 				break
