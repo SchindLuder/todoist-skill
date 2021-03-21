@@ -50,7 +50,7 @@ class TodoistSkill(MycroftSkill):
 				'projectName': 'Einkaufsliste', 
 				'listItem' : str(listItem)
 			})
-			break
+			return
 			
 		self.speak_dialog('project.not.contains.dialog', {			
 				'projectName': 'Einkaufsliste', 
