@@ -39,7 +39,7 @@ class TodoistSkill(MycroftSkill):
 		
 		self.log.info(str(message.data))
 		
-		listItem = message.data.get('listItem')
+		listItem = message.data.get('listitem')
 		if listItem is None:			
 			self.speak('ich hab den gesuchten Eintrag nicht verstanden')
 			return
