@@ -42,10 +42,7 @@ class TodoistSkill(MycroftSkill):
 		
 		if numberOfItems is 0:
 			self.speak_dialog('project.empty', {'projectName': 'Einkaufsliste'})
-			return
-		
-		if numberOfItems is 1:
-			self.speak('nur')			
+			return		
 		
 		self.log.info(str(numberOfItems) + ' open items found')
 		
@@ -54,6 +51,11 @@ class TodoistSkill(MycroftSkill):
 				self.speak('und')
 				
 			self.log.info(str(item))
+			
+			if numberOfItems is 1:
+				self.speak('nur ' + str(item))			
+				break
+			
 			self.speak(str(item))		
 					
 def create_skill():
