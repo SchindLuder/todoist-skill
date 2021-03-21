@@ -25,7 +25,7 @@ class TodoistSkill(MycroftSkill):
     		api.items.add(itemName, project_id=project_id)
     		api.commit()
 
-	def getContentListFromItems(itemCollection):    
+	def getContentListFromItems(self, itemCollection):    
     		return list(map(lambda x: x['content'], itemCollection))
 	
 	def __init__(self):
