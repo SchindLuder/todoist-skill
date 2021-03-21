@@ -37,7 +37,23 @@ class TodoistSkill(MycroftSkill):
 		self.api.sync()			
 		self.log.info('reading shopping list')		
 		openItems = self.getOpenItemsOfProject('Einkaufsliste')
-		self.log.info('got open items')		
+		itemNames = self.getContentListFromItems(openItems)
+		numberOfItems = len(itemNames)		
+		
+		if numberOfItems is 0:
+			self.speak_dialog('project.empty', {'projectName': 'Einkaufsliste'})
+			return
+		
+		self.log.info(str(numberOfItems) + ' open items found')
+		
+		for i, item in enumerate(itemNames):
+			if (i == (numberOfItems -1)) & (numberOfItems != 1):
+				self.speak('und')
+				
+			self.log.info(str(item))
+			self.speak(str(item))
+			
+
 		for item in self.getContentListFromItems(openItems):
 			self.log.info(str(item))
 			self.speak(str(item))
