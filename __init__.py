@@ -19,11 +19,16 @@ class TodoistSkill(MycroftSkill):
 	def handle_read_shoppinglist(self, message):
 		self.api.sync()	
 		
+		self.log.info('reading shopping list')
+		
 		openItems = getOpenItemsOfProject(self.api, 'Einkaufsliste')
+		
+		
 		itemNames = getContentListFromItems(openItems)
 		
 		for item in getContentListFromItems(openItems):
-			self.speak(item)
+			self.log.info(str(item))
+			self.speak(str(item))
 					
 def create_skill():
 	return TodoistSkill()
