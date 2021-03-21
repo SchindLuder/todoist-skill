@@ -41,6 +41,8 @@ class TodoistSkill(MycroftSkill):
 		self.log.info('reading shopping list')
 		
 		openItems = self.getOpenItemsOfProject('Einkaufsliste')
+		self.log.info('got open items')
+		self.log.info(str(openItems))
 		
 		for item in self.getContentListFromItems(openItems):
 			self.log.info(str(item))
