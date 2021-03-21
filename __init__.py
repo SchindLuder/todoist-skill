@@ -33,7 +33,7 @@ class TodoistSkill(MycroftSkill):
 		self.api = todoist.TodoistAPI(self.settings.get('Todoist-API-Token'))
 	
 	@intent_handler('shoppinglist.add.intent')
-	def handle_does_shoppinglist_contain(self,message):
+	def handle_add_shoppinglist(self,message):
 		self.log.info('add shopping list item')
 		self.log.info(str(message.data))
 		
