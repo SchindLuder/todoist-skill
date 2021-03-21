@@ -37,6 +37,8 @@ class TodoistSkill(MycroftSkill):
 		self.api.sync()					
 		self.log.info('does shopping list contain')						
 		
+		self.log.info(str(message.data))
+		
 		listItem = message.data.get('listItem')
 		if listItem is None:			
 			self.speak('ich hab den gesuchten Eintrag nicht verstanden')
