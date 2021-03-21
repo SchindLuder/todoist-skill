@@ -38,7 +38,7 @@ class TodoistSkill(MycroftSkill):
 		self.log.info('does shopping list contain')						
 		
 		listItem = message.data.get('listItem')
-		if room_type is None:			
+		if listItem is None:			
 			self.speak('ich hab den gesuchten Eintrag nicht verstanden')
 			return
 		
