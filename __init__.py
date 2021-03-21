@@ -17,9 +17,6 @@ class TodoistSkill(MycroftSkill):
 		project_id = getProjectIdByName(projectName)
 		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , self.api['items']))
 
-	def getOpenItemsOfProject(self, projectId):
-		return list(filter(lambda x: (x['project_id'] == projectId) & (x['checked'] == 0) , self.api['items']))
-
 	def addItemToProject(self, projectName, itemName):
     		project_id = getProjectIdByName(projectName)
     		api.items.add(itemName, project_id=project_id)
