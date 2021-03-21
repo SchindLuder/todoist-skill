@@ -1,5 +1,1 @@
-Schreibe {listItem} auf die Einkaufsliste
-Füge {listItem} zur Einkaufsliste hinzu
-Trage {listItem} in die Einkaufsliste
-Setze {listItem} auf die Einkaufsliste
-{listItem} zur Einkaufsliste hinzufügen
+(Schreib|Schreibe|Füg|Trag|Trage|Setz|Setze) {listItem} auf die Einkaufsliste (ein|hinzu| )
