@@ -31,6 +31,33 @@ class TodoistSkill(MycroftSkill):
 		
 	def initialize(self):
 		self.api = todoist.TodoistAPI(self.settings.get('Todoist-API-Token'))
+		
+	@intent_handler('shoppinglist.does.contain.intent')
+	def handle_does_shoppinglist_contain(self,message):
+		self.api.sync()					
+		self.log.info('does shopping list contain')						
+		
+		listItem = message.data.get('listItem')
+		if room_type is None:			
+			self.speak('ich hab den gesuchten Eintrag nicht verstanden')
+			return
+		
+		openItems = self.getOpenItemsOfProject('Einkaufsliste')
+		itemNames = self.getContentListFromItems(openItems)
+		
+		if listItem in itemNames:
+			self.speak_dialog('project.contains', {			
+				'projectName': 'Einkaufsliste', 
+				'listItem' : str(listItem)
+			})
+			break
+			
+		self.speak_dialog('project.not.contains.dialog', {			
+				'projectName': 'Einkaufsliste', 
+				'listItem' : str(listItem)
+			})
+		
+				
 	
 	@intent_handler('shoppinglist.read.intent')
 	def handle_read_shoppinglist(self, message):
