@@ -42,10 +42,7 @@ class TodoistSkill(MycroftSkill):
 		
 		openItems = self.getOpenItemsOfProject('Einkaufsliste')
 		
-		
-		itemNames = self.getContentListFromItems(openItems)
-		
-		for item in getContentListFromItems(openItems):
+		for item in self.getContentListFromItems(openItems):
 			self.log.info(str(item))
 			self.speak(str(item))
 					
