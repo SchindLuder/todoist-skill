@@ -44,6 +44,9 @@ class TodoistSkill(MycroftSkill):
 			self.speak_dialog('project.empty', {'projectName': 'Einkaufsliste'})
 			return
 		
+		if numberOfItems is 1:
+			self.speak('nur')			
+		
 		self.log.info(str(numberOfItems) + ' open items found')
 		
 		for i, item in enumerate(itemNames):
