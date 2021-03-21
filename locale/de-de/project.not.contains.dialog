@@ -1,1 +1,12 @@
-
+Nein, das steht nicht auf der Liste {projectName}
+{projectName} enthält {listItem} nicht
+{listItem} steht nicht auf {projectName}
+Nein ich habe {listItem} nicht auf {projectName} gefunden
+{projectName} hat keinen Eintrag {listItem}
+Nein, {listItem} steht nicht drauf
+Nein, {listItem} steht noch nicht drauf
+{listItem} konnte ich dort nicht finden
+{listItem} fehlt
+Einen Eintrag {listItem} konnte ich nicht finden
+Dort ist kein {listItem} drauf
+Dort steht kein {listItem} drauf
