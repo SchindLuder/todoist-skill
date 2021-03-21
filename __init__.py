@@ -54,7 +54,7 @@ class TodoistSkill(MycroftSkill):
 			})
 			return
 			
-		self.speak_dialog('project.not.contains.dialog', {			
+		self.speak_dialog('project.not.contains', {			
 				'projectName': 'Einkaufsliste', 
 				'listItem' : str(listItem)
 			})
