@@ -125,8 +125,14 @@ class TodoistSkill(MycroftSkill):
 	    for sortSection in sortedSections:
 		#get items of current section
 		sectionId = sortSection['id']          
-		itemsInSection = filter(lambda x: x['section_id'] == sectionId, sortItems)
+		
+		#sort them by their childorder within the section
+		itemsInSection = list(filter(lambda x: x['section_id'] == sectionId, sortItems))
 
+		def sortByChildOrder(element):
+            		return element['child_order']
+
+		itemsInSection.sort(key = sortByChildOrder)
 		for itemInSection in itemsInSection:
 		    #item already added
 		    if itemInSection in itemOrderIds:
