@@ -18,9 +18,9 @@ class TodoistSkill(MycroftSkill):
 		self.log.info('project_Id of ' + projectName + '=' + str(project_id))
 		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , self.api['items']))
 
-	def addItemToProject(self, projectName, itemName):
+	def addItemToProject(self, projectName, itemName, sectionId = None):
     		project_id = getProjectIdByName(projectName)
-    		api.items.add(itemName, project_id=project_id)
+    		api.items.add(itemName, project_id=project_id,section_id=sectionId)
     		api.commit()
 
 	def getContentListFromItems(self, itemCollection):    
@@ -104,7 +104,100 @@ class TodoistSkill(MycroftSkill):
 				self.speak('nur ' + str(item))			
 				break
 			
-			self.speak(str(item))		
+			self.speak(str(item))	
+			
+	def getItemOrderIds(self):        
+	    project_id = self.getProjectIdByName('Sortierung_Einkaufsliste')
+	    sectionsForSorting = list(filter(lambda x: (x['project_id'] == project_id), self.api['sections']))
+
+	    # sort sections by section order!
+	    sortedSections = [None] * len(sectionsForSorting)
+
+	    for section in sectionsForSorting:
+		sortedSections[int(section['section_order'])-1] = section
+
+	    #get all items of the sort project
+	    sortItems = self.getOpenItemsOfProject('Sortierung_Einkaufsliste')
+
+	    globalCounter = 0
+	    itemOrderIds = {};
+
+	    for sortSection in sortedSections:
+		#get items of current section
+		sectionId = sortSection['id']          
+		itemsInSection = filter(lambda x: x['section_id'] == sectionId, sortItems)
+
+		for itemInSection in itemsInSection:
+		    #item already added
+		    if itemInSection in itemOrderIds:
+			break
+
+		    #add name and counter for later sorting
+		    itemOrderIds[str(itemInSection['content'])] = globalCounter;
+		    globalCounter+= 1
+
+	    return itemOrderIds
+			
+	def handle_sort_shoppinglist(self,message):
+		self.api.sync()
+		shoppingItems = self.getOpenItemsOfProject('Test_Einkaufsliste')
+		itemOrderIds = self.getItemOrderIds()
+		
+		unsortedItems = []
+		sortedItems = [None] * 200
+		itemsWithAmounts = {}
+		
+		for shoppingItem in shoppingItems:
+			name = shoppingItem['content']
+			
+    		regex = r'[0-9]{1,5}[ kgml]{0,9}((\Stück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)){0,1}'
+		
+		match = re.search(regex, name)
+
+    		if match is not None: 
+			previousName = name
+			# replace amount and leading/trailing whitespaces
+			name = re.sub(regex, '', name).strip()                    
+			
+			if previousName not in itemsWithAmounts:
+				itemsWithAmounts[name] = previousName        
+
+		    if name in itemOrderIds: 
+			sortedItems[itemOrderIds[name]] = name
+			continue
+
+		    if name in unsortedItems:
+			continue
+
+		    unsortedItems.append(name)
+
+		#save unsorted (unknown) items so that an order can be configured
+		unsortedSectionId = next(x for x in self.api['sections'] if x['name'] == 'Unsortiert')['id']
+		for unsortedItem in unsortedItems: 
+			item = self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId)    
+
+		#build final order for items contained in shoppingList
+		childOrderCount = 0
+		childOrders = {}
+
+		for listItem in list(filter(lambda x: x is not None, sortedItems)):
+		    childOrders[childOrderCount] = listItem
+		    childOrderCount += 1
+
+		#reorder items
+		for childOrder in childOrders:
+		    name = childOrders[childOrder]
+
+		    matchingItem = next((x for x in shoppingItems if x['content'] == name),None)
+
+		    if matchingItem is None:
+			#get original entry with amount...
+			previousName = itemsWithAmounts[name]
+			matchingItem = next(x for x in shoppingItems if x['content'] == previousName)
+
+		    matchingItem.reorder(child_order = childOrder)
+
+		self.api.commit();
 					
 def create_skill():
 	return TodoistSkill()
