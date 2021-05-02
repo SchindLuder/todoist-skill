@@ -123,7 +123,7 @@ class TodoistSkill(MycroftSkill):
 		unsortedSectionId = todoist.getSectionIdByName('Unsortiert')
 		
 		for unsortedItem in unsortedItems: 
-			item = todoist.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId)
+			item = self.todoist.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId)
 			
 		#build final order for items contained in shoppingList
 		childOrderCount = 0
@@ -145,7 +145,7 @@ class TodoistSkill(MycroftSkill):
 				
 			matchingItem.reorder(child_order = childOrder)
 		
-		todoist.api.commit();		
+		self.todoist.api.commit();		
 					
 def create_skill():
 	return TodoistSkill()
