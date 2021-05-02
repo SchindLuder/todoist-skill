@@ -104,6 +104,8 @@ class TodoistSkill(MycroftSkill):
 		sortedItems = [None] * 200
 		itemsWithAmounts = {}
 		
+		self.log.info('going trough shopping items')
+		
 		for shoppingItem in shoppingItems:
 			name = shoppingItem['content']
 			
@@ -128,9 +130,20 @@ class TodoistSkill(MycroftSkill):
 		#save unsorted (unknown) items so that an order can be configured
 		unsortedSectionId = self.todoist.getSectionIdByName('Unsortiert')
 		
+		unsortedItemStringsForDialog = None
 		for unsortedItem in unsortedItems: 
 			item = self.todoist.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId)
 			
+			if unsortedItemStringsForDialog is None:				
+				unsortedItemStringsForDialog += str(unsortedItem)
+				return											
+			
+			unsortedItemStringsForDialog += (' und ' + str(unsortedItem))
+			
+		if unsortedItemStringsForDialog is not None: 
+			self.speak_dialog('unsortedItem', 'listItem' : str(unsortedItemStringsForDialog))
+			
+		self.log.info('ordering items')
 		#build final order for items contained in shoppingList
 		childOrderCount = 0
 		childOrders = {}
@@ -151,6 +164,7 @@ class TodoistSkill(MycroftSkill):
 				
 			matchingItem.reorder(child_order = childOrder)
 		
+		self.log.info('commiting changes')
 		self.todoist.api.commit();		
 					
 def create_skill():
