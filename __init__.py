@@ -135,8 +135,8 @@ class TodoistSkill(MycroftSkill):
 			item = self.todoist.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId)
 			
 			if unsortedItemStringsForDialog is None:				
-				unsortedItemStringsForDialog += str(unsortedItem)
-				return											
+				unsortedItemStringsForDialog = str(unsortedItem)
+				continue											
 			
 			unsortedItemStringsForDialog += (' und ' + str(unsortedItem))
 			
