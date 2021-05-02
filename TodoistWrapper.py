@@ -7,28 +7,27 @@ class TodoistWrapper():
 		self.api.sync()
 		self.log = loggingMethod
 		
-
 	def getProjectIdByName(self, name):
 		project = next(x for x in self.api.state['projects'] if x['name'] == name)
 		return project['id']
-
+	
 	def getSectionIdByName(self,sectionName):
 		unsortedSectionId = next(x for x in self.api['sections'] if x['name'] == 'Unsortiert')['id']
 		return unsortedSectionId
-
+	
 	def getOpenItemsOfProject(self, projectName):
 		project_id = self.getProjectIdByName(projectName)
 		self.log('project_Id of ' + projectName + '=' + str(project_id))
 		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , self.api['items']))
-
+	
 	def addItemToProject(self, projectName, itemName, sectionId = None):
 		project_id = self.getProjectIdByName(projectName)
 		self.api.items.add(itemName, project_id=project_id,section_id=sectionId)
 		self.api.commit()
-
-	def getContentListFromItems(self, itemCollection):    
-		return list(map(lambda x: str(x['content']).lower(), itemCollection))	
-
+	
+	def getContentListFromItems(self, itemCollection):
+		return list(map(lambda x: str(x['content']).lower(), itemCollection))
+	
 	def getItemOrderIds(self, orderProjectName = 'Sortierung_Einkaufsliste'):
 		project_id = self.getProjectIdByName(orderProjectName)
 		sectionsForSorting = list(filter(lambda x: (x['project_id'] == project_id), self.api['sections']))
