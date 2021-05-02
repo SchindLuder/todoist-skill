@@ -98,7 +98,7 @@ class TodoistSkill(MycroftSkill):
 	@intent_handler('shoppinglist.order.intent')
 	def handle_sort_shoppinglist(self,message):
 		self.todoist.api.sync()
-		shoppingItems = self.todoist.getOpenItemsOfProject('Test_Einkaufsliste')
+		shoppingItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
 		itemOrderIds = self.todoist.getItemOrderIds()
 		unsortedItems = []
 		sortedItems = [None] * 200
