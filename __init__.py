@@ -5,7 +5,7 @@ import subprocess
 import numpy
 import threading
 from math import ceil
-from TodoistWrapper import TodoistWrapper
+from .TodoistWrapper import TodoistWrapper
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
 
 class TodoistSkill(MycroftSkill):
