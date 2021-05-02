@@ -141,7 +141,7 @@ class TodoistSkill(MycroftSkill):
 			unsortedItemStringsForDialog += (' und ' + str(unsortedItem))
 			
 		if unsortedItemStringsForDialog is not None:
-			self.speak_dialog('unsortedItem', 'listItem' : str(unsortedItemStringsForDialog))
+			self.speak_dialog('unsortedItem', {'listItem' : str(unsortedItemStringsForDialog)})
 		
 		self.log.info('ordering items')
 		#build final order for items contained in shoppingList
