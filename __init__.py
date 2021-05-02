@@ -126,7 +126,7 @@ class TodoistSkill(MycroftSkill):
 			unsortedItems.append(name)
 			
 		#save unsorted (unknown) items so that an order can be configured
-		unsortedSectionId = todoist.getSectionIdByName('Unsortiert')
+		unsortedSectionId = self.todoist.getSectionIdByName('Unsortiert')
 		
 		for unsortedItem in unsortedItems: 
 			item = self.todoist.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId)
