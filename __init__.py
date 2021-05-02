@@ -93,8 +93,9 @@ class TodoistSkill(MycroftSkill):
 				self.speak('nur ' + str(item))			
 				break
 			
-			self.speak(str(item))	
-			
+			self.speak(str(item))
+	
+	@intent_handler('shoppinglist.order.intent')
 	def handle_sort_shoppinglist(self,message):
 		self.todoist.api.sync()
 		shoppingItems = self.todoist.getOpenItemsOfProject('Test_Einkaufsliste')
