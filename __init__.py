@@ -14,7 +14,7 @@ class TodoistSkill(MycroftSkill):
 		
 	def initialize(self):
 		token = self.settings.get('Todoist-API-Token')
-		self.todoist = TodoistWrapper(token, self.log.info)
+		self.todoist = TodoistWrapper.TodoistWrapper(token, self.log.info)
 	
 	@intent_handler('shoppinglist.add.intent')
 	def handle_add_shoppinglist(self,message):
