@@ -109,7 +109,8 @@ class TodoistSkill(MycroftSkill):
 		for shoppingItem in shoppingItems:
 			name = shoppingItem['content']
 			
-			regex = r'[0-9]{1,5}[ kgml]{0,9}((\Stück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)){0,1}'
+			regex = r'[0-9]{1,5}[ kgml]{0,9}((\bEL\b)|(\bTL\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)){0,1}'
+			#r'[0-9]{1,5}[ kgml]{0,9}((\Stück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)){0,1}'
 			match = re.search(regex, name)
 			
 			if match is not None: 
