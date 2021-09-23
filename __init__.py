@@ -209,7 +209,7 @@ class TodoistSkill(MycroftSkill):
 
 		self.todoist.sortShoppingList()
 
-		self.log(str(allIngredientStrings))
+		self.log.info(str(allIngredientStrings))
 					
 def create_skill():
 	return TodoistSkill()
