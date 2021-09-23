@@ -1,3 +1,2 @@
 todoist-python
 bs4
-urllib
