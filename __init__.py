@@ -194,6 +194,8 @@ class TodoistSkill(MycroftSkill):
 
 		crawler = Crawler.Crawler(self.log.info)
 
+		allIngredientStrings =[]
+
 		for url in getUrlsToCrawl(self.todoist):
 			ingredientStrings = crawler.get_ingredientStrings(url)
 			allIngredientStrings.extend(ingredientStrings)
