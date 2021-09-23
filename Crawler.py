@@ -4,11 +4,14 @@ from bs4 import BeautifulSoup
 
 class Crawler():
     """description of class"""
+    def __init__(self, loggingMethod):
+        self.log = loggingMethod
 
     def download_url(self, url):
         return requests.get(url).text
 
     def get_ingredientStrings(self, url):
+        self.log('crawling url: '+ url)
         html = self.download_url(url)
         soup = BeautifulSoup(html, 'html.parser')
 

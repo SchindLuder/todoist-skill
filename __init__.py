@@ -192,7 +192,7 @@ class TodoistSkill(MycroftSkill):
 
 			return urls
 
-		crawler = Crawler()
+		crawler = Crawler.Crawler(self.log.info)
 
 		for url in getUrlsToCrawl(self.todoist):
 			ingredientStrings = crawler.get_ingredientStrings(url)
