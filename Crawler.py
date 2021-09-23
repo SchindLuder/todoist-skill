@@ -2,7 +2,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-class Crawler(object):
+class Crawler():
     """description of class"""
 
     def download_url(self, url):
