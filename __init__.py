@@ -6,6 +6,7 @@ import numpy
 import threading
 from math import ceil
 from . import TodoistWrapper
+from . import Crawler
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
 
 class TodoistSkill(MycroftSkill):
@@ -64,9 +65,7 @@ class TodoistSkill(MycroftSkill):
 		self.speak_dialog('project.not.contains', {			
 				'projectName': 'Einkaufsliste', 
 				'listItem' : str(listItem)
-			})
-		
-				
+			})		
 	
 	@intent_handler('shoppinglist.read.intent')
 	def handle_read_shoppinglist(self, message):
@@ -167,6 +166,48 @@ class TodoistSkill(MycroftSkill):
 		
 		self.log.info('commiting changes')
 		self.todoist.api.commit();		
+
+	@intent_handler('shoppinglist.sync.intent')
+	def handle_sync_shoppinglist(self,message):
+		self.todoist.api.sync()
+
+		def getUrlsToCrawl(todoist, projectName = 'Einkaufsliste', clearUrls = True ):
+			urls = []
+			recipes = self.todoist.getOpenItemsOfProject(projectName)
+			for recipe in recipes:
+				fullString = str(recipe.data['content'])
+				if not 'https' in fullString: 
+					continue
+
+				url = 'https' + fullString.split('https')[-1]
+				# remove trailing ) if url was added manually and not via share in Cookidoo
+				url = url.strip(')')
+				urls.append(url)
+
+				if clearUrls:
+					recipe.delete()
+
+			if clearUrls:
+				todoist.api.commit()
+
+			return urls
+
+		crawler = Crawler()
+
+		for url in getUrlsToCrawl(self.todoist):
+			ingredientStrings = crawler.get_ingredientStrings(url)
+			allIngredientStrings.extend(ingredientStrings)
+
+		index = 0
+
+		for ingredientString in allIngredientStrings:
+			self.todoist.addItemToProject('Einkaufsliste', ingredientString)
+
+		self.todoist.api.commit()
+
+		self.todoist.sortShoppingList()
+
+		self.log(str(allIngredientStrings))
 					
 def create_skill():
 	return TodoistSkill()
