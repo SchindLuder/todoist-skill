@@ -42,7 +42,7 @@ class TodoistSkill(MycroftSkill):
 	
 	@intent_handler('shoppinglist.add.intent')
 	def handle_add_shoppinglist(self,message):
-		if not checkTodoistConfiguration():
+		if not self.checkTodoistConfiguration():
 			return
 
 		self.log.info('add shopping list item')
@@ -63,7 +63,7 @@ class TodoistSkill(MycroftSkill):
 		
 	@intent_handler('shoppinglist.does.contain.intent')
 	def handle_does_shoppinglist_contain(self,message):
-		if not checkTodoistConfiguration():
+		if not self.checkTodoistConfiguration():
 			return
 
 		self.todoist.api.sync()					
@@ -93,7 +93,7 @@ class TodoistSkill(MycroftSkill):
 	
 	@intent_handler('shoppinglist.read.intent')
 	def handle_read_shoppinglist(self, message):
-		if not checkTodoistConfiguration():
+		if not self.checkTodoistConfiguration():
 			return
 
 		self.todoist.api.sync()			
@@ -123,7 +123,7 @@ class TodoistSkill(MycroftSkill):
 	
 	@intent_handler('shoppinglist.order.intent')
 	def handle_sort_shoppinglist(self,message):
-		if not checkTodoistConfiguration():
+		if not self.checkTodoistConfiguration():
 			return
 
 		self.todoist.api.sync()
@@ -199,7 +199,7 @@ class TodoistSkill(MycroftSkill):
 
 	@intent_handler('shoppinglist.sync.intent')
 	def handle_sync_shoppinglist(self,message):
-		if not checkTodoistConfiguration():
+		if not self.checkTodoistConfiguration():
 			return
 
 		self.todoist.api.sync()
