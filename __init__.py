@@ -13,17 +13,38 @@ class TodoistSkill(MycroftSkill):
 	def __init__(self):
 		MycroftSkill.__init__(self)
 		
-	def initialize(self):
-		token = self.settings.get('Todoist-API-Token')
+	def initialize(self):		
+		def tryGetToken(configPath = '/home/pi/todoist.config', settingsName ='Todoist-API-Token'):
+			token = None
+
+			if os.path.exists(configPath):
+				with open(configPath) as f: 
+					token = f.read()
+					self.log.info('got todoist token from local config file')
+					return str(token)
+			
+			return self.settings.get(settingsName)
 		
+		token = tryGetToken()
+
 		if not token:
 			self.log.info('No token set in settings. Please set a token to access todoist')
 			return
 		
 		self.todoist = TodoistWrapper.TodoistWrapper(token, self.log.info)
+
+	def checkTodoistConfiguration(self):
+		if self.todoist is None:
+			self.speak_dialog('config.noapitoken.dialog')
+			return False
+
+		return True
 	
 	@intent_handler('shoppinglist.add.intent')
 	def handle_add_shoppinglist(self,message):
+		if not checkTodoistConfiguration():
+			return
+
 		self.log.info('add shopping list item')
 		self.log.info(str(message.data))
 		
@@ -42,6 +63,9 @@ class TodoistSkill(MycroftSkill):
 		
 	@intent_handler('shoppinglist.does.contain.intent')
 	def handle_does_shoppinglist_contain(self,message):
+		if not checkTodoistConfiguration():
+			return
+
 		self.todoist.api.sync()					
 		self.log.info('does shopping list contain')						
 		
@@ -69,6 +93,9 @@ class TodoistSkill(MycroftSkill):
 	
 	@intent_handler('shoppinglist.read.intent')
 	def handle_read_shoppinglist(self, message):
+		if not checkTodoistConfiguration():
+			return
+
 		self.todoist.api.sync()			
 		self.log.info('reading shopping list')		
 		openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
@@ -96,6 +123,9 @@ class TodoistSkill(MycroftSkill):
 	
 	@intent_handler('shoppinglist.order.intent')
 	def handle_sort_shoppinglist(self,message):
+		if not checkTodoistConfiguration():
+			return
+
 		self.todoist.api.sync()
 		shoppingItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
 		itemOrderIds = self.todoist.getItemOrderIds()
@@ -169,6 +199,9 @@ class TodoistSkill(MycroftSkill):
 
 	@intent_handler('shoppinglist.sync.intent')
 	def handle_sync_shoppinglist(self,message):
+		if not checkTodoistConfiguration():
+			return
+
 		self.todoist.api.sync()
 
 		def getUrlsToCrawl(todoist, projectName = 'Einkaufsliste', clearUrls = True ):
