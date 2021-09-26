@@ -26,6 +26,7 @@ class TodoistWrapper():
 		self.api.items.add(itemName, project_id=project_id,section_id=sectionId)
 		if commit:
 			self.api.commit()
+			self.api.sync()
 
 	def getContentListFromItems(self, itemCollection):    
 		return list(map(lambda x: str(x['content']).lower(), itemCollection))	
