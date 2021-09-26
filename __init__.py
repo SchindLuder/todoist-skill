@@ -54,7 +54,7 @@ class TodoistSkill(MycroftSkill):
 			self.speak('ich hab den gewünschten Eintrag nicht verstanden')
 			return
 		
-		self.todoist.addItemToProject('Einkaufsliste', str(listItem), True)
+		self.todoist.addItemToProject('Einkaufsliste', str(listItem), None, True)
 		
 		self.speak_dialog('project.added.item', {
 			'project': 'Einkaufsliste', 
