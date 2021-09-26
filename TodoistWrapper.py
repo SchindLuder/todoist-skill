@@ -22,9 +22,11 @@ class TodoistWrapper():
 		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , self.api['items']))
 
 	def addItemToProject(self, projectName, itemName, sectionId = None, commit = False):
+		self.log.info('adding \'' + itemName + '\' to \'' + projectName )
 		project_id = self.getProjectIdByName(projectName)
 		self.api.items.add(itemName, project_id=project_id,section_id=sectionId)
 		if commit:
+			self.log.info('commiting changes')
 			self.api.commit()
 			self.api.sync()
 
