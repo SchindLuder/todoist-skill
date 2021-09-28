@@ -31,8 +31,7 @@ class TodoistWrapper():
 			try:
 				if element['checked'] == 1:
 					continue
-			except:
-				self.log('could not access checked property for element: ' + str(element))
+			except:				
 				continue
 
 			openItems.append(element)
