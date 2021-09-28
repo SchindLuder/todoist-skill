@@ -24,7 +24,7 @@ class TodoistWrapper():
 
 		numberOfItems = len(projectItems)
 
-		self.log('list contains ' + numberOfItems + 'elements')
+		self.log('list contains ' + str(numberOfItems) + 'elements')
 
 		if numberOfItems is 0:
 			return []
