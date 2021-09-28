@@ -110,7 +110,7 @@ class TodoistSkill(MycroftSkill):
 		numberOfItems = len(itemNames)		
 		
 		if numberOfItems is 0:
-			self.speak_dialog('project.empty', {'projectName': 'Einkaufsliste'})
+			self.speak_dialog('project.git empty', {'projectName': 'Einkaufsliste'})
 			return		
 		
 		self.log.info(str(numberOfItems) + ' open items found')
