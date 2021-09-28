@@ -101,6 +101,7 @@ class TodoistSkill(MycroftSkill):
 		openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
 
 		if len(openItems) is 0:
+			self.log.info('could not find any open items in shopping list')
 			self.speak_dialog('project.empty', {'projectName': 'Einkaufsliste'})
 			return
 

@@ -22,11 +22,7 @@ class TodoistWrapper():
 
 		projectItems = self.api['items']
 
-		numberOfItems = len(projectItems)
-
-		self.log('list contains ' + str(numberOfItems) + '  elements')
-
-		if numberOfItems is 0:
+		if len(projectItems) is 0:
 			return []
 
 		return list(filter(lambda x: (x['project_id'] == project_id) and (hasattr(x, 'checked')) and (x['checked'] == 0) , projectItems))
