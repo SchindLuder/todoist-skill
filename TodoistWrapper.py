@@ -22,10 +22,22 @@ class TodoistWrapper():
 
 		projectItems = self.api['items']
 
-		if len(projectItems) is 0:
-			return []
+		openItems = list([])
 
-		return list(filter(lambda x: (x['project_id'] == project_id) and (x['checked'] == 0) , projectItems))
+		for element in projectItems:
+			self.log('checking: ' + str(element))
+
+			if element['project_id'] != project_id:
+				continue
+
+			if element['checked'] == 1:
+				continue
+
+			openItems.append(element)
+
+		return openItems
+
+		#return list(filter(lambda x: (x['project_id'] == project_id) and (x['checked'] == 0) , projectItems))
 
 	def addItemToProject(self, projectName, itemName, sectionId = None, commit = False):
 		self.log('adding \'' + itemName + '\' to \'' + projectName )
