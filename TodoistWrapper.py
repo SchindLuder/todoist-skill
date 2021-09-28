@@ -19,7 +19,13 @@ class TodoistWrapper():
 	def getOpenItemsOfProject(self, projectName):
 		project_id = self.getProjectIdByName(projectName)
 		self.log('project_Id of ' + projectName + '=' + str(project_id))
-		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , self.api['items']))
+
+		projectItems = self.api['items']
+
+		if projectItems is None or projectItems.range is 0:
+			return []
+
+		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , projectItems))
 
 	def addItemToProject(self, projectName, itemName, sectionId = None, commit = False):
 		self.log('adding \'' + itemName + '\' to \'' + projectName )

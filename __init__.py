@@ -99,6 +99,11 @@ class TodoistSkill(MycroftSkill):
 		self.todoist.api.sync()			
 		self.log.info('reading shopping list')		
 		openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+
+		if len(openItems) is 0:
+			self.speak_dialog('project.empty', {'projectName': 'Einkaufsliste'})
+			return
+
 		itemNames = self.todoist.getContentListFromItems(openItems)
 		numberOfItems = len(itemNames)		
 		
