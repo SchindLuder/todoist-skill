@@ -22,7 +22,7 @@ class TodoistWrapper():
 
 		projectItems = self.api['items']
 
-		if projectItems is None or projectItems.range is 0:
+		if projectItems is None or len(projectItems) is 0:
 			return []
 
 		return list(filter(lambda x: (x['project_id'] == project_id) & (x['checked'] == 0) , projectItems))
