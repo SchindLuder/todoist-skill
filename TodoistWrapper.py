@@ -25,9 +25,11 @@ class TodoistWrapper():
 		openItems = list([])
 
 		for element in projectItems:
-			self.log('checking: ' + str(element))
-
 			if element['project_id'] != project_id:
+				continue
+
+			if not hasattr(element, 'checked'):
+				self.log('element without check state: ' + str(element))
 				continue
 
 			if element['checked'] == 1:
