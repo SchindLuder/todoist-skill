@@ -29,7 +29,7 @@ class TodoistWrapper():
 		if numberOfItems is 0:
 			return []
 
-		return list(filter(lambda x: (x['project_id'] == project_id) & (hasattr(x, 'checked')) & (x['checked'] == 0) , projectItems))
+		return list(filter(lambda x: (x['project_id'] == project_id) and (hasattr(x, 'checked')) and (x['checked'] == 0) , projectItems))
 
 	def addItemToProject(self, projectName, itemName, sectionId = None, commit = False):
 		self.log('adding \'' + itemName + '\' to \'' + projectName )
