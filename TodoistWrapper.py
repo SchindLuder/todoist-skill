@@ -28,7 +28,6 @@ class TodoistWrapper():
 		if commit:
 			self.log('commiting changes')
 			self.api.commit()
-			self.api.sync()
 
 	def getContentListFromItems(self, itemCollection):    
 		return list(map(lambda x: str(x['content']).lower(), itemCollection))	
