@@ -25,10 +25,14 @@ class TodoistWrapper():
 		openItems = list([])
 
 		for element in projectItems:
-			if element['project_id'] != project_id:
-				continue
 
-			if element['checked'] == 1:
+			try:
+				if element['project_id'] != project_id:
+					continue
+
+				if element['checked'] == 1:
+					continue
+			except:
 				continue
 
 			openItems.append(element)
