@@ -136,7 +136,11 @@ class TodoistWrapper():
 		
 		unsortedItemStringsForDialog = None
 		for unsortedItem in unsortedItems: 
-			item = self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId, False, str(itemsWithAmounts[unsortedItem]))
+			description = ''
+			if unsortedItem in itemsWithAmounts:
+				description = str(itemsWithAmounts[unsortedItem])
+
+			self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId, False, description)
 			
 			if unsortedItemStringsForDialog is None:				
 				unsortedItemStringsForDialog = str(unsortedItem)
