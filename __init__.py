@@ -116,17 +116,20 @@ class TodoistSkill(MycroftSkill):
 		self.log.info(str(numberOfItems) + ' open items found')
 		
 		for i, item in enumerate(itemNames):
+
+			item = (str(item)).split(',')[0]
+			
 			self.log.info(str(item))
 			
 			if (i == (numberOfItems -1)) & (numberOfItems != 1):
-				self.speak('und ' + str(item))
+				self.speak('und ' + item)
 				break
 				
 			if numberOfItems is 1:
-				self.speak('nur ' + str(item))			
+				self.speak('nur ' + item)			
 				break
 			
-			self.speak(str(item))
+			self.speak(item)
 	
 	@intent_handler('shoppinglist.order.intent')
 	def handle_sort_shoppinglist(self,message):
