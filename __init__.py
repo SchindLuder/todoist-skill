@@ -163,11 +163,21 @@ class TodoistSkill(MycroftSkill):
 
 		allIngredientStrings =[]
 
+		urls = getUrlsToCrawl(self.todoist)
+
+		numberOfUrls = len(urls)
+
+		if numberOfUrls > 0:
+			self.speak_dialog('project.urls.found', {'numberOfUrls' : str(numberOfUrls)})
+
 		for url in getUrlsToCrawl(self.todoist):
 			ingredientStrings = crawler.get_ingredientStrings(url)
 			allIngredientStrings.extend(ingredientStrings)
 
 		index = 0
+
+		if len(allIngredientStrings) > 0:
+			self.speak_dialog('ingredients.add', {'numberOfIngredients' : str(len(allIngredientStrings))})
 
 		for ingredientString in allIngredientStrings:
 			self.todoist.addItemToProject('Einkaufsliste', ingredientString)
@@ -175,6 +185,7 @@ class TodoistSkill(MycroftSkill):
 		self.todoist.api.commit()
 
 		self.todoist.sortShoppingList()
+		self.speak('Einkaufsliste wurde sortiert')
 
 		self.log.info(str(allIngredientStrings))
 					

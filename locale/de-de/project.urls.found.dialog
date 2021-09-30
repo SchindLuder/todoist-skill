@@ -1,0 +1,8 @@
+{numberOfUrls} Rezepte werden ausgelesen
+ich lese schnell {numberOfUrls} rezepte aus
+Zutaten werden aufgeschrieben für {numberOfUrls} rezepte
+{numberOfUrls} URLs zum auslesen gefunden
+{numberOfUrls} rezepte werden übertragen
+{numberOfUrls} rezepte werden synchronisiert
+übertrage {numberOfUrls} rezepte
+trage {numberOfUrls} rezepte ein
