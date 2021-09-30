@@ -18,7 +18,7 @@ class TodoistWrapper():
 
 	def getOpenItemsOfProject(self, projectName):
 		project_id = self.getProjectIdByName(projectName)
-		self.log('project_Id of ' + projectName + '=' + str(project_id))
+		self.log('getting open items of project:' + projectName + ' with id:' + str(project_id))
 
 		projectItems = self.api['items']
 
