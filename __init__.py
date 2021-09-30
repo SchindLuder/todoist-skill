@@ -170,7 +170,7 @@ class TodoistSkill(MycroftSkill):
 		if numberOfUrls > 0:
 			self.speak_dialog('project.urls.found', {'numberOfUrls' : str(numberOfUrls)})
 
-		for url in getUrlsToCrawl(self.todoist):
+		for url in urls:
 			ingredientStrings = crawler.get_ingredientStrings(url)
 			allIngredientStrings.extend(ingredientStrings)
 
