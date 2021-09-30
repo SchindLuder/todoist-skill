@@ -117,7 +117,7 @@ class TodoistWrapper():
 				if previousName not in itemsWithAmounts:
 					itemsWithAmounts[name] = previousName    		
 
-			ignoreRegex = r'(zum (\bKochen\b)|(\bWürzen\b))$'
+			ignoreRegex = r'(\bWasser\b)|((zum (\bKochen\b)|(\bWürzen\b))$'
 			ignoreMatch = re.search(ignoreRegex, name)
 
 			if ignoreMatch: 
