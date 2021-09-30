@@ -18,7 +18,7 @@ class TodoistWrapper():
 
 	def getOpenItemsOfProject(self, projectName):
 		project_id = self.getProjectIdByName(projectName)
-		self.log('getting open items of project with name ' + projectName + ' and id: ' + str(project_id))
+		self.log('project_Id of ' + projectName + '=' + str(project_id))
 
 		projectItems = self.api['items']
 
@@ -26,26 +26,19 @@ class TodoistWrapper():
 
 		for element in projectItems:
 			if element['project_id'] != project_id:
-				continue							
+				continue
 
-			try:
-				if element['checked'] == 1:
-					continue
-			except:				
+			if element['checked'] == 1:
 				continue
 
 			openItems.append(element)
 
 		return openItems
 
-		#return list(filter(lambda x: (x['project_id'] == project_id) and (x['checked'] == 0) , projectItems))
-
-	def addItemToProject(self, projectName, itemName, sectionId = None, commit = False):
-		self.log('adding \'' + itemName + '\' to \'' + projectName )
+	def addItemToProject(self, projectName, itemName, sectionId = None, commit = False, descriptionString = ''):
 		project_id = self.getProjectIdByName(projectName)
-		self.api.items.add(itemName, project_id=project_id,section_id=sectionId)
+		self.api.items.add(itemName, project_id=project_id,section_id=sectionId, description=descriptionString )
 		if commit:
-			self.log('commiting changes')
 			self.api.commit()
 
 	def getContentListFromItems(self, itemCollection):    
@@ -107,7 +100,7 @@ class TodoistWrapper():
 				for i in range(1,len(split)):
 					rest+=',' + split[i]
 			
-			regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)){0,1}'
+			regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}'
 			match = re.search(regex, name)
 			
 			if match is not None: 
@@ -119,6 +112,12 @@ class TodoistWrapper():
 				#self.log(str(previousName) + ' was converted to ' + str(name))
 				if previousName not in itemsWithAmounts:
 					itemsWithAmounts[name] = previousName    		
+
+			ignoreRegex = r'(zum (\bKochen\b)|(\bWürzen\b))$'
+			ignoreMatch = re.search(ignoreRegex, name)
+
+			if ignoreMatch: 
+				continue
 			
 			if name in itemOrderIds: 
 				sortedItems[itemOrderIds[name]] = name
@@ -133,14 +132,14 @@ class TodoistWrapper():
 		
 		unsortedItemStringsForDialog = None
 		for unsortedItem in unsortedItems: 
-			item = self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId)
+			item = self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId, False, str(itemsWithAmounts[unsortedItem]))
 			
 			if unsortedItemStringsForDialog is None:				
 				unsortedItemStringsForDialog = str(unsortedItem)
 				continue											
 			
 			unsortedItemStringsForDialog += (' und ' + str(unsortedItem))	
-		
+
 		self.log('ordering items')
 		#build final order for items contained in shoppingList
 		childOrderCount = 0
