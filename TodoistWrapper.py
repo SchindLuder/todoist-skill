@@ -97,6 +97,9 @@ class TodoistWrapper():
 			
 		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
 
+		bracketsRegex = r'\(.*\)'
+		regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}'
+
 		for shoppingItem in shoppingItems:
 			#remove anything after commata
 			split = shoppingItem['content'].split(',')
@@ -110,7 +113,12 @@ class TodoistWrapper():
 				for i in range(1,len(split)):
 					rest+=',' + split[i]
 			
-			regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}'
+			match = re.search(bracketsRegex, name)
+
+			if match:
+				rest += name[match.regs[0][0]:match.regs[0][1]]
+				name = re.sub(bracketsRegex, '', name).strip()
+						
 			match = re.search(regex, name)
 			
 			if match is not None: 
