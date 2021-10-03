@@ -186,7 +186,7 @@ class TodoistSkill(MycroftSkill):
 
 		allIngredientStrings =[]
 
-		urls = getUrlsToCrawl(self.todoist, False)
+		urls = getUrlsToCrawl(self.todoist, 'Einkaufsliste', False)
 
 		numberOfUrls = len(urls)
 
