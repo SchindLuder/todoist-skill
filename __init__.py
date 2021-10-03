@@ -212,7 +212,7 @@ class TodoistSkill(MycroftSkill):
 
 		ignoreSectionId = self.todoist.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
-		self.log.info('Regex: ' + self.getItemsIgnoreRegex)
+		self.log.info('Regex: ' + self.getItemsIgnoreRegex())
 		self.log.info('IgnoreItems: ' + str(self.itemsToIgnore))
 
 		for ingredientString in allIngredientStrings:
