@@ -48,7 +48,6 @@ class TodoistSkill(MycroftSkill):
 
 		self.itemsToIgnoreRegex = self.getItemsIgnoreRegex(self.itemsToIgnore)
 		
-
 	def getItemsIgnoreRegex(self,itemsToIgnore):		
 		ignoreItemRegex = ''
 

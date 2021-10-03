@@ -173,7 +173,7 @@ class TodoistWrapper():
 		self.api.commit();
 
 	def getOrAddSection(self, projectName, sectionName):
-		projectId = getProjectIdByName(projectName)
+		projectId = self.getProjectIdByName(projectName)
 
 		section_Id = next((section for section in self.api.sections if (section.project_id is projectId and section.name is sectionName)),None)
 
