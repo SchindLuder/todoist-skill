@@ -43,7 +43,7 @@ class TodoistSkill(MycroftSkill):
 			'Rotweinessig',
 			'Gewürzpaste für',
 			'Mineralwasser', 
-			'Gewürzpaste'
+			'Gewürzpaste',
 			'Kräuter der Provence'
 			]
 
@@ -51,11 +51,15 @@ class TodoistSkill(MycroftSkill):
 		
 	def getItemsIgnoreRegex(self,itemsToIgnore):		
 		ignoreItemRegex = ''
-
+		
 		for itemToIgnore in itemsToIgnore:
-			ignoreItemRegex+=(r'\s{0,1}' + itemToIgnore.replace(' ', r'\s') + r'\s{0,1}|')
+			ignoreItemRegex+=(r'((\s{0,1}' + itemToIgnore + r'\s{1})|(\s{1}'+itemToIgnore+')$)|')
 			
-		return ignoreItemRegex.rstrip(r'\s|')
+		ignoreItemRegex = ignoreItemRegex.rstrip(r'|')
+
+		secondRegex = r'|((zum (Braten|Würzen|Kochen){1})$)'
+
+		return ignoreItemRegex + secondRegex
 
 	def checkTodoistConfiguration(self):
 		if self.todoist is None:
@@ -204,10 +208,10 @@ class TodoistSkill(MycroftSkill):
 			self.speak_dialog('ingredients.add', {'numberOfIngredients' : str(len(allIngredientStrings))})
 
 		def shallItemBeIgnored(item):
-			if ingredientString in self.itemsToIgnore:
+			if item in self.itemsToIgnore:
 				return True
 
-			ignoreMatch = re.search(self.itemsToIgnoreRegex, ingredientString)
+			ignoreMatch = re.search(self.itemsToIgnoreRegex, item)
 
 			return ignoreMatch is not None
 
