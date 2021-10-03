@@ -98,7 +98,7 @@ class TodoistWrapper():
 		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
 
 		bracketsRegex = r'\(.*\)'
-		regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}'
+		regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}(.*zum (Braten|Kochen|Würzen){1})$'
 
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content']
