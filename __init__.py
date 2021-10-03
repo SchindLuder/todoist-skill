@@ -232,7 +232,7 @@ class TodoistSkill(MycroftSkill):
 		self.speak('Einkaufsliste wurde sortiert')
 
 		self.log.info(str(allIngredientStrings))
-			
+
 	@intent_handler('shoppinglist.delete.list')
 	def handle_delete_shoppinglist(self, message):
 		response = self.ask_yesno('confirm.delete.shoppinglist')
@@ -254,7 +254,6 @@ class TodoistSkill(MycroftSkill):
 			shoppingItem.delete()
 
 		todoist.api.commit()
-
 
 def create_skill():
 	return TodoistSkill()
