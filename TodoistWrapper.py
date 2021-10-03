@@ -93,7 +93,7 @@ class TodoistWrapper():
 		def removeIgnoredItems(item):
 			ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
-			return item.section_id is not ignoreSection
+			return item['section_id'] is not ignoreSection
 			
 		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
 
