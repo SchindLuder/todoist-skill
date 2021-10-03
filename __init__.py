@@ -46,7 +46,16 @@ class TodoistSkill(MycroftSkill):
 			'Gewürzpaste'
 			]
 
-		self.itemsToIgnoreRegex = self.getItemsIgnoreRegex(self.itemsToIgnore)		
+		self.itemsToIgnoreRegex = self.getItemsIgnoreRegex(self.itemsToIgnore)
+		
+
+	def getItemsIgnoreRegex(self,itemsToIgnore):		
+		ignoreItemRegex = ''
+
+		for itemToIgnore in itemsToIgnore:
+			ignoreItemRegex+=(r'\s{0,1}' + itemToIgnore + r'\s|')
+			
+		return ignoreItemRegex.rstrip(r'\s|')
 
 	def checkTodoistConfiguration(self):
 		if self.todoist is None:
