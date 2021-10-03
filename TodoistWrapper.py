@@ -175,6 +175,8 @@ class TodoistWrapper():
 	def getOrAddSection(self, projectName, sectionName):
 		projectId = self.getProjectIdByName(projectName)
 
+		self.log(str(self.api.sections.all()))
+
 		section_Id = next((section for section in self.api.sections.all() if (section['project_id'] is projectId and section['name'] is sectionName)),None)
 
 		if section_Id:
