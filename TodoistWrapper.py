@@ -100,10 +100,12 @@ class TodoistWrapper():
 		bracketsRegex = r'\(.*\)'
 		regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}'
 
-		for shoppingItem in shoppingItems:
+		for shoppingItem in shoppingItems:			
+			fullName =shoppingItem['content']
 			#remove anything after commata
-			split = shoppingItem['content'].split(',')
+			split = fullName.split(',')
 
+			#only use first part for evaluation
 			name = split[0]
 
 			#save the rest for the name resolution
@@ -115,21 +117,23 @@ class TodoistWrapper():
 			
 			match = re.search(bracketsRegex, name)
 
-			if match:
-				rest += name[match.regs[0][0]:match.regs[0][1]]
+			if match:				
+				#rest += name[match.regs[0][0]:match.regs[0][1]]
+				#remove brackets
 				name = re.sub(bracketsRegex, '', name).strip()
 						
 			match = re.search(regex, name)
 			
 			if match is not None: 
 				#full name as in recipe / shopping list
-				previousName = name + rest
+				#previousName = name + rest
 				# replace amount and leading/trailing whitespaces
 				name = re.sub(regex, '', name).strip()						
 				
-				#self.log(str(previousName) + ' was converted to ' + str(name))
-				if previousName not in itemsWithAmounts:
-					itemsWithAmounts[name] = previousName    		
+				#self.log(str(previousName) + ' was converted to ' + str(name))				
+				#if previousName not in itemsWithAmounts:
+				if fullName not in itemsWithAmounts:
+					itemsWithAmounts[name] = fullName    		
 			
 			if name in itemOrderIds: 
 				sortedItems[itemOrderIds[name]] = name
