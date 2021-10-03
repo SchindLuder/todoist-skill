@@ -93,7 +93,7 @@ class TodoistWrapper():
 		ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
 		def removeIgnoredItems(item):			
-			return (item['section_id'] is not ignoreSection) or ('http' in item)
+			return (item['section_id'] is not ignoreSection) or ('http' not in item)
 			
 		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
 
