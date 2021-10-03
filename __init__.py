@@ -53,7 +53,7 @@ class TodoistSkill(MycroftSkill):
 		ignoreItemRegex = ''
 
 		for itemToIgnore in itemsToIgnore:
-			ignoreItemRegex+=(r'\s{0,1}' + itemToIgnore + r'\s{0,1}|')
+			ignoreItemRegex+=(r'\s{0,1}' + itemToIgnore.replace(' ', r'\s') + r'\s{0,1}|')
 			
 		return ignoreItemRegex.rstrip(r'\s|')
 
@@ -212,9 +212,6 @@ class TodoistSkill(MycroftSkill):
 			return ignoreMatch is not None
 
 		ignoreSectionId = self.todoist.getOrAddSection('Einkaufsliste', 'Ignoriert')
-
-		self.log.info('Regex: ' + self.getItemsIgnoreRegex(self.itemsToIgnore))
-		self.log.info('IgnoreItems: ' + str(self.itemsToIgnore))
 
 		for ingredientString in allIngredientStrings:
 			if shallItemBeIgnored(ingredientString):
