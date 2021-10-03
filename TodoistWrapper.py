@@ -90,9 +90,9 @@ class TodoistWrapper():
 		
 		self.log('going trough shopping items')
 		
-		def removeIgnoredItems(item):
-			ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
+		ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
+		def removeIgnoredItems(item):			
 			return item['section_id'] is not ignoreSection
 			
 		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
@@ -175,13 +175,20 @@ class TodoistWrapper():
 	def getOrAddSection(self, projectName, sectionName):
 		projectId = self.getProjectIdByName(projectName)
 
-		section = next((section for section in self.api.sections.all() if (section['project_id'] is projectId and section['name'] is sectionName)),None)
+		section = None
 
-		if section:
-			return section['id']
+		allsection = self.api.sections.all()
+		
+		for section in allsection:
+			if section['project_id'] != projectId:
+				continue
+
+			if section['name'] != sectionName:
+				continue
+
+			return section['id']		
 		
 		section = self.api.sections.add(sectionName, project_id = projectId)
-
 		self.api.commit()
 
 		return section['id']
