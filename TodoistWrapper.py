@@ -184,4 +184,4 @@ class TodoistWrapper():
 		
 		section = self.api.sections.add(sectionName, project_id = projectId)
 
-		return section.section_Id
+		return section['section_Id']
