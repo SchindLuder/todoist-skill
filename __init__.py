@@ -233,7 +233,7 @@ class TodoistSkill(MycroftSkill):
 
 		self.log.info(str(allIngredientStrings))
 
-	@intent_handler('shoppinglist.delete.list')
+	@intent_handler('shoppinglist.delete.list.intent')
 	def handle_delete_shoppinglist(self, message):
 		response = self.ask_yesno('confirm.delete.shoppinglist')
 
