@@ -61,7 +61,6 @@ class TodoistWrapper():
 		globalCounter = 0
 		itemOrderIds = {}
 		for sortSection in sectionsForSorting:
-			#get items of current section
 			sectionId = sortSection['id']          
 		
 			#sort them by their childorder within the section
@@ -75,7 +74,7 @@ class TodoistWrapper():
 			for itemInSection in itemsInSection:
 				#item already added
 				if itemInSection in itemOrderIds:
-					break
+					continue
 				#add name and counter for later sorting
 				itemOrderIds[str(itemInSection['content'])] = globalCounter;
 				globalCounter+= 1
@@ -86,11 +85,18 @@ class TodoistWrapper():
 		shoppingItems = self.getOpenItemsOfProject(listName)
 		itemOrderIds = self.getItemOrderIds()
 		unsortedItems = []
-		sortedItems = [None] * 200
+		sortedItems = [None] * 1000
 		itemsWithAmounts = {}
 		
 		self.log('going trough shopping items')
 		
+		def removeIgnoredItems(item):
+			ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
+
+			return item.section_id is not ignoreSection
+			
+		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
+
 		for shoppingItem in shoppingItems:
 			#remove anything after commata
 			split = shoppingItem['content'].split(',')
@@ -116,12 +122,6 @@ class TodoistWrapper():
 				#self.log(str(previousName) + ' was converted to ' + str(name))
 				if previousName not in itemsWithAmounts:
 					itemsWithAmounts[name] = previousName    		
-
-			ignoreRegex = r'(\bWasser\b)|(((zum \bKochen\b)|(zum \bWürzen\b)))$'
-			ignoreMatch = re.search(ignoreRegex, name)
-
-			if ignoreMatch: 
-				continue
 			
 			if name in itemOrderIds: 
 				sortedItems[itemOrderIds[name]] = name
@@ -171,3 +171,15 @@ class TodoistWrapper():
 		
 		self.log('commiting changes')
 		self.api.commit();
+
+	def getOrAddSection(self, projectName, sectionName):
+		projectId = getProjectIdByName(projectName)
+
+		section_Id = next((section for section in self.api.sections if (section.project_id is projectId and section.name is sectionName)),None)
+
+		if section_Id:
+			return section_Id
+
+		section = self.api.sections.add(sectionName, project_id = projectId)
+
+		return section.section_Id
