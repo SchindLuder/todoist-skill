@@ -245,7 +245,17 @@ class TodoistSkill(MycroftSkill):
 		projectId = self.todoist.getProjectIdByName('Einkaufsliste')
 
 		def onlyEinkaufsliste(item):
-			return item['project_id'] == projectId and item['checked'] == 0 and not 'http' in str(item['content'])
+			if item['project_id'] != projectId:
+			   return False
+
+			try:		   
+				if item['checked'] != 0 and not 'http' in str(item['content']):
+				   return False 
+
+			except:
+				return False
+
+			return True
 
 		allItems = list(self.todoist.api.items.all())
 		shoppingItems = filter(onlyEinkaufsliste, allItems)
