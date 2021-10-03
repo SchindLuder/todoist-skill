@@ -263,7 +263,9 @@ class TodoistSkill(MycroftSkill):
 		for shoppingItem in shoppingItems:
 			shoppingItem.delete()
 
+		self.speak_dialog('shoppinglist.deleted')
 		self.todoist.api.commit()
+		
 
 def create_skill():
 	return TodoistSkill()
