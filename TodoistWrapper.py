@@ -98,7 +98,8 @@ class TodoistWrapper():
 		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
 
 		bracketsRegex = r'\(.*\)'
-		regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}(.*zum (Braten|Kochen|Würzen){1})$'
+		#regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}(.*zum (Braten|Kochen|Würzen){1})$'
+		regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}\s*(?P<ingredient>[A-Za-z\-]{1,})(( und mehr){0,1} zum (Braten|Kochen|Würzen){1})$'
 
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content']
@@ -109,11 +110,11 @@ class TodoistWrapper():
 			name = split[0]
 
 			#save the rest for the name resolution
-			rest = ''
+			#rest = ''
 
-			if len(split) > 1:
-				for i in range(1,len(split)):
-					rest+=',' + split[i]
+			#if len(split) > 1:
+			#	for i in range(1,len(split)):
+			#		rest+=',' + split[i]
 			
 			match = re.search(bracketsRegex, name)
 
@@ -128,8 +129,8 @@ class TodoistWrapper():
 				#full name as in recipe / shopping list
 				#previousName = name + rest
 				# replace amount and leading/trailing whitespaces
-				name = re.sub(regex, '', name).strip()						
-				
+				#name = re.sub(regex, '', name).strip()						
+				name = match.group('ingredient')
 				#self.log(str(previousName) + ' was converted to ' + str(name))				
 				#if previousName not in itemsWithAmounts:
 				if fullName not in itemsWithAmounts:
