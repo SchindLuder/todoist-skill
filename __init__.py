@@ -214,7 +214,9 @@ class TodoistSkill(MycroftSkill):
 
 		for ingredientString in allIngredientStrings:
 			if shallItemBeIgnored(ingredientString):
+				self.log('adding item to ignored section: '+ ingredientString)
 				self.todoist.addItemToProject('Einkaufsliste', ingredientString, ignoreSectionId)
+				continue
 
 			self.todoist.addItemToProject('Einkaufsliste', ingredientString)
 
