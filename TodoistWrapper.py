@@ -182,4 +182,6 @@ class TodoistWrapper():
 		
 		section = self.api.sections.add(sectionName, project_id = projectId)
 
+		self.api.commit()
+
 		return section['id']

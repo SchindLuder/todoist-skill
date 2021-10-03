@@ -210,11 +210,11 @@ class TodoistSkill(MycroftSkill):
 
 			return ignoreMatch is not None
 
-		ignoreSection = self.todoist.getOrAddSection('Einkaufsliste', 'Ignoriert')
+		ignoreSectionId = self.todoist.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
 		for ingredientString in allIngredientStrings:
 			if shallItemBeIgnored(ingredientString):
-				self.todoist.addItemToProject('Einkaufsliste', ingredientString, ignoreSection)
+				self.todoist.addItemToProject('Einkaufsliste', ingredientString, ignoreSectionId)
 
 			self.todoist.addItemToProject('Einkaufsliste', ingredientString)
 
