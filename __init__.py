@@ -232,7 +232,30 @@ class TodoistSkill(MycroftSkill):
 		self.speak('Einkaufsliste wurde sortiert')
 
 		self.log.info(str(allIngredientStrings))
-					
+			
+	@intent_handler('shoppinglist.delete.list')
+	def handle_delete_shoppinglist(self, message):
+		response = self.ask_yesno('confirm.delete.shoppinglist')
+
+		if response == 'no':
+			return
+		if response is None or response != 'yes':
+			self.speak_dialog('could.not.understand')
+
+		projectId = todoist.getProjectIdByName('Einkaufsliste')
+
+		def onlyEinkaufsliste(item):
+			return item['project_id'] == projectId and item['checked'] == 0 and not 'http' in str(item['content'])
+
+		allItems = list(todoist.api.items.all())
+		shoppingItems = filter(onlyEinkaufsliste, allItems)
+
+		for shoppingItem in shoppingItems:
+			shoppingItem.delete()
+
+		todoist.api.commit()
+
+
 def create_skill():
 	return TodoistSkill()
 
