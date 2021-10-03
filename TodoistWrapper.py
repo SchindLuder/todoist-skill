@@ -97,9 +97,9 @@ class TodoistWrapper():
 			
 		shoppingItems = list(filter(removeIgnoredItems, shoppingItems))
 
-		bracketsRegex = r'\(.*\)'
+
 		#regex = r'[0-9½¼¾\-]{1,5}[ kgeh\.ml]{0,9}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}(.*zum (Braten|Kochen|Würzen){1})$'
-		regex = r'[0-9½¼¾\-]{1,5} (g |kg |ml |l |geh\. |gestrichener |gestr\. ){0,1}(grüne |rote |frische |gemischte |reife |getrocknete |gefrorene ){0,}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}\s{0,1}(?P<ingredient>[\D\-]{1,})((( und mehr){0,1} zum (Braten|Kochen|Würzen))$){0,1}'
+		regex = r'[0-9½¼¾\-]{0,5}\s{0,1}(g |kg |ml |l |geh\. |gestrichener |gestr\. ){0,1}(grüne |rote |frische |gemischte |reife |getrocknete |gefrorene ){0,}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}\s{0,1}(?P<ingredient>[\D\-]{,})'
 
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content']
@@ -109,19 +109,8 @@ class TodoistWrapper():
 			#only use first part for evaluation
 			name = split[0]
 
-			#save the rest for the name resolution
-			#rest = ''
-
-			#if len(split) > 1:
-			#	for i in range(1,len(split)):
-			#		rest+=',' + split[i]
-			
-			match = re.search(bracketsRegex, name)
-
-			if match:				
-				#rest += name[match.regs[0][0]:match.regs[0][1]]
-				#remove brackets
-				name = re.sub(bracketsRegex, '', name).strip()
+			name = re.sub(r'\(.*\)', '', name).strip()
+			name = re.sub(r'((( und mehr){0,1} zum (Würzen|Kochen|Braten){1}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
