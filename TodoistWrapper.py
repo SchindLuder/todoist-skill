@@ -175,13 +175,10 @@ class TodoistWrapper():
 		self.log('commiting changes')
 		self.api.commit();
 
-	def getOrAddSection(self, projectName, sectionName):
-		self.api.sync()
-
+	def getOrAddSection(self, projectName, sectionName):	
 		projectId = self.getProjectIdByName(projectName)
 
-		section = None
-
+		sectionId = None
 		allsection = self.api.sections.all()
 		
 		for section in allsection:
@@ -191,9 +188,14 @@ class TodoistWrapper():
 			if section['name'] != sectionName:
 				continue
 
-			return section['id']		
-		
-		section = self.api.sections.add(sectionName, project_id = projectId)
-		self.api.commit()
+			sectionId = section['id']		
 
-		return section['id']
+		if sectionId is None:
+			self.log(f'could not find section \'{sectionName}\'. Going to create it')
+			section = self.api.sections.add(sectionName, project_id = projectId)
+			self.api.commit()
+			sectionId = section['id']
+				
+		self.log(f'Section \'{sectionName}\' in project \'{projectName}\' has id \'{sectionId}\'')
+
+		return sectionId

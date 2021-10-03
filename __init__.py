@@ -44,6 +44,7 @@ class TodoistSkill(MycroftSkill):
 			'Gewürzpaste für',
 			'Mineralwasser', 
 			'Gewürzpaste'
+			'Kräuter der Provence'
 			]
 
 		self.itemsToIgnoreRegex = self.getItemsIgnoreRegex(self.itemsToIgnore)
