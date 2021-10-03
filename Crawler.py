@@ -13,26 +13,30 @@ class Crawler():
     def get_ingredientStrings(self, url):
         self.log('crawling url: '+ url)
         html = self.download_url(url)
-        soup = BeautifulSoup(html, 'html.parser')
-
-        ingredientRootNode = soup.find(id="ingredients-0")
-
+        soup = BeautifulSoup(html, 'html.parser')        
+        
         ingredientStrings = []
 
-        for ingredientNode in ingredientRootNode.children:
-            if not hasattr(ingredientNode, 'id') or not 'ingredient-' in ingredientNode['id']:
-                continue
+        for i in range(0,10):
+            ingredientRootNode = soup.find(id=f'ingredients-{str(i)}')
 
-            ingredientStringPure = str(ingredientNode.text)
-            splits = ingredientStringPure.split('\n')
+            if not ingredientRootNode:
+                break
 
-            ingredientStringUnescaped = ''
-            for split in splits: 
-                ingredientStringUnescaped += (' ' + split.strip())
+            for ingredientNode in ingredientRootNode.children:
+                if not hasattr(ingredientNode, 'id') or not 'ingredient-' in ingredientNode['id']:
+                    continue
 
-            ingredientStringUnescaped = ingredientStringUnescaped.replace('  ', ' ')
+                ingredientStringPure = str(ingredientNode.text)
+                splits = ingredientStringPure.split('\n')
+
+                ingredientStringUnescaped = ''
+                for split in splits: 
+                    ingredientStringUnescaped += (' ' + split.strip())
+
+                ingredientStringUnescaped = ingredientStringUnescaped.replace('  ', ' ')
             
-            if ingredientStringUnescaped is not None:
-                ingredientStrings.append(ingredientStringUnescaped.strip())
+                if ingredientStringUnescaped is not None:
+                    ingredientStrings.append(ingredientStringUnescaped.strip())
 
         return ingredientStrings

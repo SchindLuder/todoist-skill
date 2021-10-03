@@ -183,7 +183,7 @@ class TodoistSkill(MycroftSkill):
 					recipe.delete()
 
 			if clearUrls:
-				todoist.api.commit()
+				self.todoist.api.commit()
 
 			return urls
 
