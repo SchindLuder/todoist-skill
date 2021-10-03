@@ -163,6 +163,9 @@ class TodoistWrapper():
 			
 			matchingItem = next((x for x in shoppingItems if x['content'] == name),None)
 			if matchingItem is None:
+				if not name in itemsWithAmounts:
+					continue
+				
 				#get original entry with amount...
 				previousName = itemsWithAmounts[name]
 				matchingItem = next(x for x in shoppingItems if x['content'] == previousName)
@@ -173,6 +176,8 @@ class TodoistWrapper():
 		self.api.commit();
 
 	def getOrAddSection(self, projectName, sectionName):
+		self.api.sync()
+
 		projectId = self.getProjectIdByName(projectName)
 
 		section = None
