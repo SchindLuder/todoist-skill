@@ -176,7 +176,13 @@ class TodoistWrapper():
 				
 				#get original entry with amount...
 				previousName = itemsWithAmounts[name]
-				matchingItem = next(x for x in shoppingItems if x['content'] == previousName)
+
+				try:
+					matchingItem = next(x for x in shoppingItems if x['content'] == previousName)
+
+				except:
+					self.log(f'could not find matching item for {previousName}')
+					continue
 				
 			matchingItem.reorder(child_order = childOrder)
 		
