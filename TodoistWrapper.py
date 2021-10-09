@@ -154,9 +154,17 @@ class TodoistWrapper():
 		
 		sorted_keys = sorted(childOrders.keys())
 
-		for orderNumber in sorted_keys:			
-			orderName = str(childOrders[orderNumber])		
+		sortItems = self.getOpenItemsOfProject('Sortierung_Einkaufsliste')
 
+		def tryGetSectionForItem(itemOfSortList):
+			sortItem = next((x for x in sortItems if x['content'] == orderName), None)						
+			sectionName = self.api.sections.get_by_id(sortItem['section_id'])['name']
+			sectionId = self.getOrAddSection('Einkaufsliste', str(sectionName))
+			return sectionId
+
+		for orderNumber in sorted_keys:			
+			orderName = str(childOrders[orderNumber])
+						
 			def doesItemBelongToType(shoppingListItem):
 				itemName = str(shoppingListItem['content'])
 				if itemName == orderName:
@@ -173,7 +181,11 @@ class TodoistWrapper():
 			itemsOfThisType = list(filter(doesItemBelongToType, shoppingItems))
 
 			for itemOfThisType in itemsOfThisType:				
-				itemOfThisType.reorder(child_order = int(offset))				
+				itemOfThisType.reorder(child_order = int(offset))
+
+				sectionId = tryGetSectionForItem(orderName)
+				itemOfThisType.move(section_id = sectionId)
+
 				self.log(str(offset) + ' : ' + itemOfThisType['content'])
 
 				if offset % 10 == 0:
