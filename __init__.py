@@ -217,21 +217,46 @@ class TodoistSkill(MycroftSkill):
 
 		ignoreSectionId = self.todoist.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
+		addCounter = 0
+
 		for ingredientString in allIngredientStrings:
+			addCounter += 1			
+			
 			if shallItemBeIgnored(ingredientString):
-				self.log.info(f'adding item to ignored section: \'{ingredientString}\' sectionId: \'{str(ignoreSectionId)}\'')
-				#addItemToProject(self, projectName, itemName, sectionId = None, commit = False, descriptionString = ''):
+				self.log.info(f'adding item to ignored section: \'{ingredientString}\' sectionId: \'{str(ignoreSectionId)}\'')				
 				self.todoist.addItemToProject('Einkaufsliste', ingredientString, ignoreSectionId)
 				continue
 
 			self.todoist.addItemToProject('Einkaufsliste', ingredientString)
 
-		self.todoist.api.commit()
+			if addCounter % 15 == 0:
+				self.todoist.api.commit()
 
+		self.todoist.api.commit()
+		
 		self.todoist.sortShoppingList()
 		self.speak('Einkaufsliste wurde sortiert')
 
-		self.log.info(str(allIngredientStrings))
+		def deleteEmptySections():
+			projectId = self.todoist.getProjectIdByName('Einkaufsliste')
+
+			sections = list(filter(lambda x: x['project_id'] == projectId, self.todoist.api.sections.all()))
+
+			openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+
+			for section in sections:
+				# try to get first item in section 
+				itemInSection = next((openItem for openItem in openItems if openItem['section_id'] == section['id']), None)
+
+				# delete section if its empty
+				if itemInSection is None:
+					section.delete()
+
+			self.todoist.api.commit()
+
+		deleteEmptySections()
+
+		self.log.debug(str(allIngredientStrings))
 
 	@intent_handler('shoppinglist.delete.list.intent')
 	def handle_delete_shoppinglist(self, message):
