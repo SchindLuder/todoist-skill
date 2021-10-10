@@ -258,7 +258,7 @@ class TodoistSkill(MycroftSkill):
 			return True
 
 		allItems = list(self.todoist.api.items.all())
-		shoppingItems = filter(onlyEinkaufsliste, allItems)		
+		shoppingItems = list(filter(onlyEinkaufsliste, allItems))
 
 		self.log.info(f'deleting {str(len(shoppingItems))} items from shopping list')
 
