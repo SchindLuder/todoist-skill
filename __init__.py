@@ -250,7 +250,8 @@ class TodoistSkill(MycroftSkill):
 			   return False
 
 			try:		   
-				if item['checked'] == 0 or 'http' in str(item['content']):
+				# do not delete finished tasks neither URLs of recipes
+				if item['checked'] == 1 or 'http' in str(item['content']):
 				   return False 
 
 			except:
