@@ -235,6 +235,7 @@ class TodoistSkill(MycroftSkill):
 
 	@intent_handler('shoppinglist.delete.list.intent')
 	def handle_delete_shoppinglist(self, message):
+		self.todoist.api.sync()
 		response = self.ask_yesno('confirm.delete.shoppinglist')
 
 		if response == 'no':
@@ -253,6 +254,7 @@ class TodoistSkill(MycroftSkill):
 				   return False 
 
 			except:
+				self.log.debug('got exception while checking items of shopping list')
 				return False
 
 			return True
