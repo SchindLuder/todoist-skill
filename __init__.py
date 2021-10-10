@@ -250,7 +250,7 @@ class TodoistSkill(MycroftSkill):
 			   return False
 
 			try:		   
-				if 'http' in str(item['content']):
+				if item['checked'] == 0 or 'http' in str(item['content']):
 				   return False 
 
 			except:
