@@ -260,8 +260,14 @@ class TodoistSkill(MycroftSkill):
 		allItems = list(self.todoist.api.items.all())
 		shoppingItems = filter(onlyEinkaufsliste, allItems)
 
+		counter = 0
+
 		for shoppingItem in shoppingItems:
 			shoppingItem.delete()
+			counter += 1
+
+			if counter % 10 == 0:
+				self.todoist.api.commit()
 
 		self.speak_dialog('shoppinglist.deleted')
 		self.todoist.api.commit()
