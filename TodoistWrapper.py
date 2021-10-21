@@ -86,35 +86,67 @@ class TodoistWrapper():
 		itemOrderIds = self.getItemOrderIds()
 		unsortedItems = []
 		sortedItems = [None] * 1000
-		itemsWithAmounts = {}
+		fullNameToName = {}
+		nameToFullName = {}
 		
 		self.log('going trough shopping items')
 		
 		ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
-		def removeIgnoredItems(item):			
-			return (item['section_id'] is not ignoreSection) or ('http' not in item)
-					
-		regex = r'[0-9½¼¾\-]{0,5}\s{0,1}(g |kg |ml |l |geh\. |gestrichener |gestr\. ){0,1}(grüne |rote |frische |gemischte |reife |getrocknete |gefrorene ){0,}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}\s{0,1}(?P<ingredient>[\D\-]{,})'
+		units =['g', 'kg', 'ml', 'l']
+		adjectives = ['frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
+				'gestrichene', 'getrocknete', 'getrocknetes', 'rot', 'rote', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'weißer', 'weiße']
+		amounts = [ 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stück','Stücke', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel']
+
+		regex = r'[0-9½¼¾\- ]{0,5}\s{0,1}'
+
+		unitRegex =''
+		for unit in units:
+			unitRegex += unit + ' |'
+
+		unitRegex = '(' + unitRegex.rstrip('|') +'){0,2}'
+
+		adjectivesRegex = ''
+		for adjective in adjectives:
+			adjectivesRegex += adjective + ' |'
+
+		adjectivesRegex = '(' + adjectivesRegex.rstrip('|') +'){0,}'
+
+		amountRegex = ''
+		for amount in amounts:
+			amountRegex += amount + ' |'
+
+		amountRegex = '(' + amountRegex.rstrip('|') + '){0,1}'
+
+		regex = r'[0-9½¼¾\-]{0,5}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'
+		#regex = r'[0-9½¼¾\-]{0,5}\s{0,1}(g |kg |ml |l |geh\. |gestrichener |gestr\. ){0,1}(grüne |rote |frische |gemischte |reife |getrocknete |gefrorene ){0,}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}\s{0,1}(?P<ingredient>[\D\-]{,})'
 
 		for shoppingItem in shoppingItems:			
-			fullName =shoppingItem['content']
-			#remove anything after commata
-			split = fullName.split(',')
+			fullName =shoppingItem['content'].replace(' - ', '-')
 
-			#only use first part for evaluation
-			name = split[0]
+			if 'http' in fullName:
+				continue
+			
+			#remove everything inside ( )
+			name = re.sub(r'\(.*\)', '', fullName).strip()
 
-			name = re.sub(r'\(.*\)', '', name).strip()
-			name = re.sub(r'((( und mehr){0,1} zum (Würzen|Kochen|Braten){1}){0,1})$', '', name).strip()
+			#remove anything after commata or oder and only use first part for evaluation
+			name = name.split(',')[0].split('oder')[0]
+
+			#remove trailing descriptions
+			name = re.sub(r'((( und mehr){0,1} (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
 			if match is not None: 				
 				name = match.group('ingredient')
 
-				if fullName not in itemsWithAmounts:
-					itemsWithAmounts[fullName] = name    		
+				if fullName not in fullNameToName:
+					fullNameToName[fullName] = name
+					self.log(fullName + ' --> ' + name)
+
+					if name not in nameToFullName:
+						nameToFullName[name] = fullName
 			
 			if name in itemOrderIds: 
 				sortedItems[itemOrderIds[name]] = name
@@ -125,13 +157,14 @@ class TodoistWrapper():
 			unsortedItems.append(name)
 			
 		#save unsorted (unknown) items so that an order can be configured
-		unsortedSectionId = self.getSectionIdByName('Unsortiert')
+		unsortedSectionId = self.getOrAddSection('Sortierung_Einkaufsliste', 'Unsortiert')
 		
 		unsortedItemStringsForDialog = None
+
 		for unsortedItem in unsortedItems: 
 			description = ''
-			if unsortedItem in itemsWithAmounts:
-				description = str(itemsWithAmounts[unsortedItem])
+			if unsortedItem in nameToFullName:
+				description = str(nameToFullName[unsortedItem])
 
 			self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId, False, description)
 			
@@ -170,10 +203,10 @@ class TodoistWrapper():
 				if itemName == orderName:
 					return True
 
-				if itemName not in itemsWithAmounts:
+				if itemName not in fullNameToName:
 					return False
 
-				if orderName == itemsWithAmounts[itemName]:
+				if orderName == fullNameToName[itemName]:
 					return True
 
 				return False
@@ -188,13 +221,16 @@ class TodoistWrapper():
 
 				self.log(str(offset) + ' : ' + itemOfThisType['content'])
 
-				if offset % 10 == 0:
-					self.log('commiting 10 changes')
+				if offset % 15 == 0:
+					self.log('commiting 15 changes')
 					self.api.commit();
 
 				offset += 1
 
-		self.log('commiting remaining changes')
+		if offset % 15 != 0:
+			self.log('commiting remaining changes')
+			self.api.commit();
+		
 		self.api.commit();
 
 
