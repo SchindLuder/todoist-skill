@@ -90,8 +90,6 @@ class TodoistWrapper():
 		nameToFullName = {}
 		
 		self.log('going trough shopping items')
-		
-		ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
 		units =['g', 'kg', 'ml', 'l']
 		adjectives = ['braune', 'brauner', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
@@ -134,7 +132,7 @@ class TodoistWrapper():
 			name = name.split(',')[0].split('oder')[0]
 
 			#remove trailing descriptions
-			name = re.sub(r'((( und mehr){0,1} (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
+			name = re.sub(r'((( und mehr){0,1}[ 0-9ETL]* (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
