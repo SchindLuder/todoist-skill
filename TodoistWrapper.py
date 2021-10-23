@@ -93,10 +93,8 @@ class TodoistWrapper():
 
 		units =['g', 'kg', 'ml', 'l']
 		adjectives = ['braune', 'brauner', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
-				'gestrichene', 'getrocknete', 'getrocknetes', 'rot', 'rote', 'roter', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'weißer', 'weiße']
+				'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'weißer', 'weiße']
 		amounts = [ 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stück','Stücke', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel']
-
-		regex = r'[0-9½¼¾\- ]{0,3}\s{0,1}'
 
 		unitRegex =''
 		for unit in units:
@@ -116,7 +114,7 @@ class TodoistWrapper():
 
 		amountRegex = '(' + amountRegex.rstrip('|') + '){0,1}'
 
-		regex = r'[0-9½¼¾\-]{0,5}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'
+		regex = r'[0-9½¼¾\-]{0-3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'
 		#regex = r'[0-9½¼¾\-]{0,5}\s{0,1}(g |kg |ml |l |geh\. |gestrichener |gestr\. ){0,1}(grüne |rote |frische |gemischte |reife |getrocknete |gefrorene ){0,}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}\s{0,1}(?P<ingredient>[\D\-]{,})'
 
 		for shoppingItem in shoppingItems:			
@@ -132,7 +130,7 @@ class TodoistWrapper():
 			name = name.split(',')[0].split('oder')[0]
 
 			#remove trailing descriptions
-			name = re.sub(r'((( und mehr){0,1}[ 0-9ETL]* (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
+			name = re.sub(r'((( und [0-9½¼¾\-]{0-3}\s{0,1}'+amountRegex+ 'mehr){0,1} (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
