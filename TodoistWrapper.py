@@ -130,7 +130,7 @@ class TodoistWrapper():
 			name = name.split(',')[0].split('oder')[0]
 
 			#remove trailing descriptions
-			name = re.sub(r'((( und [0-9½¼¾\-]{0-3}\s{0,1}'+amountRegex+ 'mehr){0,1} (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
+			name = re.sub(r'((( und mehr){0,1} (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
