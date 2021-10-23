@@ -32,22 +32,6 @@ class TodoistSkill(MycroftSkill):
 			return
 		
 		self.todoist = TodoistWrapper.TodoistWrapper(token, self.log.info)
-
-		self.itemsToIgnore = [
-			'Wasser',
-			'Salz',
-			'Pfeffer',	
-			'Oregano',	
-			'Muskat',
-			'Muskatnuss',
-			'Rotweinessig',
-			'Gewürzpaste für',
-			'Mineralwasser', 
-			'Gewürzpaste',
-			'Kräuter der Provence'
-			]
-
-		self.itemsToIgnoreRegex = self.getItemsIgnoreRegex(self.itemsToIgnore)
 		
 	def getItemsIgnoreRegex(self,itemsToIgnore):		
 		ignoreItemRegex = ''
@@ -206,33 +190,6 @@ class TodoistSkill(MycroftSkill):
 
 		if len(allIngredientStrings) > 0:
 			self.speak_dialog('ingredients.add', {'numberOfIngredients' : str(len(allIngredientStrings))})
-
-		def shallItemBeIgnored(item):
-			if item in self.itemsToIgnore:
-				return True
-
-			ignoreMatch = re.search(self.itemsToIgnoreRegex, item)
-
-			return ignoreMatch is not None
-
-		ignoreSectionId = self.todoist.getOrAddSection('Einkaufsliste', 'Ignoriert')
-
-		addCounter = 0
-
-		for ingredientString in allIngredientStrings:
-			addCounter += 1			
-			
-			if shallItemBeIgnored(ingredientString):
-				self.log.info(f'adding item to ignored section: \'{ingredientString}\' sectionId: \'{str(ignoreSectionId)}\'')				
-				self.todoist.addItemToProject('Einkaufsliste', ingredientString, ignoreSectionId)
-				continue
-
-			self.todoist.addItemToProject('Einkaufsliste', ingredientString)
-
-			if addCounter % 15 == 0:
-				self.todoist.api.commit()
-
-		self.todoist.api.commit()
 		
 		self.todoist.sortShoppingList()
 		self.speak('Einkaufsliste wurde sortiert')
