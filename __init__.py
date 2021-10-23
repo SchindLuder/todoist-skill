@@ -191,6 +191,16 @@ class TodoistSkill(MycroftSkill):
 		if len(allIngredientStrings) > 0:
 			self.speak_dialog('ingredients.add', {'numberOfIngredients' : str(len(allIngredientStrings))})
 		
+		for ingredient in allIngredientStrings:
+			index += 1
+			self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False)
+
+			if index % 15 == 0:
+				self.todoist.api.commit()
+
+		if index % 15 != 0:
+			self.todoist.api.commit()
+
 		self.todoist.sortShoppingList()
 		self.speak('Einkaufsliste wurde sortiert')
 
