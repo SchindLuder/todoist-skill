@@ -94,11 +94,11 @@ class TodoistWrapper():
 		ignoreSection = self.getOrAddSection('Einkaufsliste', 'Ignoriert')
 
 		units =['g', 'kg', 'ml', 'l']
-		adjectives = ['frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
-				'gestrichene', 'getrocknete', 'getrocknetes', 'rot', 'rote', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'weißer', 'weiße']
+		adjectives = ['braune', 'brauner', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
+				'gestrichene', 'getrocknete', 'getrocknetes', 'rot', 'rote', 'roter', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'weißer', 'weiße']
 		amounts = [ 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stück','Stücke', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel']
 
-		regex = r'[0-9½¼¾\- ]{0,5}\s{0,1}'
+		regex = r'[0-9½¼¾\- ]{0,3}\s{0,1}'
 
 		unitRegex =''
 		for unit in units:
