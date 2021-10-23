@@ -89,7 +89,7 @@ class TodoistWrapper():
 		fullNameToName = {}
 		nameToFullName = {}
 		
-		self.log('going trough shopping items')
+		self.log(f'going trough {len(shoppingItems)} shopping items')
 
 		units =['g', 'kg', 'ml', 'l']
 		adjectives = ['braune', 'brauner', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
@@ -114,7 +114,7 @@ class TodoistWrapper():
 
 		amountRegex = '(' + amountRegex.rstrip('|') + '){0,1}'
 
-		regex = r'[0-9½¼¾\-]{0-3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'
+		regex = r'[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'
 		#regex = r'[0-9½¼¾\-]{0,5}\s{0,1}(g |kg |ml |l |geh\. |gestrichener |gestr\. ){0,1}(grüne |rote |frische |gemischte |reife |getrocknete |gefrorene ){0,}((\bEL\b)|(\bTL\b)|(\bStängel\b)|(\bZweige\b)|(\bStück\b)|(\bLiter\b)|(\bPackung\b)|(\bBund\b)|(\bPack\b)|(\bPäckchen\b)|(\bPk\b)|(\bFlasche\b)|(\bPrise\b)|(\bPrisen\b)){0,1}\s{0,1}(?P<ingredient>[\D\-]{,})'
 
 		for shoppingItem in shoppingItems:			
