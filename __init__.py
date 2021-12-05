@@ -266,6 +266,8 @@ class TodoistSkill(MycroftSkill):
 			if counter % 10 == 0:
 				self.todoist.api.commit()
 
+		self.todoist.deleteAllSectionsFromProject('Einkaufsliste')
+
 		self.speak_dialog('shoppinglist.deleted')
 		self.todoist.api.commit()
 		
