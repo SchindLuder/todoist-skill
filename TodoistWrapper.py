@@ -94,7 +94,7 @@ class TodoistWrapper():
 		units =['g', 'kg', 'ml', 'l']
 		adjectives = ['braune', 'brauner', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
 				'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'weißer', 'weiße']
-		amounts = [ 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stück','Stücke', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel']
+		amounts = [ 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stück','Stücke', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugel', 'Kugeln']
 
 		unitRegex =''
 		for unit in units:
@@ -130,12 +130,18 @@ class TodoistWrapper():
 			name = name.split(',')[0].split('oder')[0]
 
 			#remove trailing descriptions
-			name = re.sub(r'((( und mehr){0,1} (zum|nach) (Würzen|Kochen|Braten|Geschmack){1}){0,1})$', '', name).strip()
+			name = re.sub(r'((( und mehr){0,1} (zum|nach) (Würzen|Kochen|Braten|Geschmack|Einfetten){1}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
-			if match is not None: 				
-				name = match.group('ingredient')
+			if match is not None:
+				ingredientFromMatch = match.group('ingredient')
+				
+				if ingredientFromMatch is '':
+					self.log('got empty match for ' + name + ' -> ' + ingredientFromMatch)
+					continue
+
+				name = ingredientFromMatch
 
 				if fullName not in fullNameToName:
 					fullNameToName[fullName] = name
