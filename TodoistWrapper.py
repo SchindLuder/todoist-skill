@@ -266,7 +266,8 @@ class TodoistWrapper():
 		return sectionId	
 
 	def deleteAllSectionsFromProject(self, projectName = 'Einkaufsliste'):
-		projectId = self.getProjectIdByName(projectName)
+		self.api.sync()
+		projectId = self.getProjectIdByName(projectName)		
 		allsection = self.api.sections.all()
 
 		hasSections = False
