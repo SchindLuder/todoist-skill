@@ -249,9 +249,13 @@ class TodoistWrapper():
 			if section['name'] != sectionName:
 				continue
 
-			sectionId = section['id']		
+			sectionId = section['id']	
 
-		if sectionId is None: #or not isinstance(sectionId, int):
+			if not isinstance(sectionId, int):
+				section.delete()
+		
+
+		if sectionId is None:
 			self.log(f'could not find section \'{sectionName}\'. Going to create it')
 			section = self.api.sections.add(sectionName, project_id = projectId)
 			self.api.commit()
@@ -259,4 +263,20 @@ class TodoistWrapper():
 				
 		self.log(f'Section \'{sectionName}\' in project \'{projectName}\' has id \'{sectionId}\'')
 
-		return sectionId
+		return sectionId	
+
+	def deleteAllSectionsFromProject(self, projectName = 'Einkaufsliste'):
+		projectId = self.getProjectIdByName(projectName)
+		allsection = self.api.sections.all()
+
+		hasSections = False
+
+		for section in allsection:
+			if section['project_id'] != projectId:
+				continue
+
+			hasSections = True
+			section.delete()			
+
+		if hasSections:
+			self.api.commit()
