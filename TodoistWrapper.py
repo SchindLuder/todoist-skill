@@ -251,10 +251,10 @@ class TodoistWrapper():
 
 			sectionId = section['id']		
 
-		if sectionId is None or not isinstance(sectionId, int):
+		if sectionId is None: #or not isinstance(sectionId, int):
 			self.log(f'could not find section \'{sectionName}\'. Going to create it')
 			section = self.api.sections.add(sectionName, project_id = projectId)
-			#self.api.commit()
+			self.api.commit()
 			sectionId = section['id']
 				
 		self.log(f'Section \'{sectionName}\' in project \'{projectName}\' has id \'{sectionId}\'')
