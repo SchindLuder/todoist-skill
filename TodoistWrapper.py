@@ -119,6 +119,7 @@ class TodoistWrapper():
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content'].replace(' - ', '-')
 
+			#ignore recipe urls
 			if 'http' in fullName:
 				continue
 			
