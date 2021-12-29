@@ -32,18 +32,6 @@ class TodoistSkill(MycroftSkill):
 			return
 		
 		self.todoist = TodoistWrapper.TodoistWrapper(token, self.log.info)
-		
-	def getItemsIgnoreRegex(self,itemsToIgnore):		
-		ignoreItemRegex = ''
-		
-		for itemToIgnore in itemsToIgnore:
-			ignoreItemRegex+=(r'((\s{0,1}' + itemToIgnore + r'\s{1})|(\s{1}'+itemToIgnore+')$)|')
-			
-		ignoreItemRegex = ignoreItemRegex.rstrip(r'|')
-
-		secondRegex = r'|((zum (Braten|Würzen|Kochen){1})$)'
-
-		return ignoreItemRegex + secondRegex
 
 	def checkTodoistConfiguration(self):
 		if self.todoist is None:

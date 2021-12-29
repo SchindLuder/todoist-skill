@@ -93,8 +93,8 @@ class TodoistWrapper():
 
 		units =['g', 'kg', 'ml', 'l']
 		adjectives = ['braune', 'brauner', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
-				'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufter', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'schwarzes', 'weißer', 'weiße', 'weißes']
-		amounts = [ 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stücke','Stück', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugeln', 'Kugel']
+				'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufter', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'schwarzes', 'weißer', 'weiße', 'weißes', 'passierte']
+		amounts = [ 'Blatt', 'Blätter', 'Streifen', 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stücke','Stück', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugeln', 'Kugel']
 
 		unitRegex =''
 		for unit in units:
@@ -114,7 +114,8 @@ class TodoistWrapper():
 
 		amountRegex = '(' + amountRegex.rstrip('|') + '){0,1}'
 
-		regex = r'[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'		
+		#added 0-9 for example '10 g Dinkelmehl Type 630'
+		regex = r'[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-0,9]{,})'		
 
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content'].replace(' - ', '-')
@@ -130,7 +131,7 @@ class TodoistWrapper():
 			name = name.split(',')[0].split('oder')[0]
 
 			#remove trailing descriptions
-			name = re.sub(r'(((und |etwas |mehr ){0,3}(zum |nach| )*(Abschmecken|Würzen|Kochen|Braten|Geschmack|Einfetten|Wälzen){1}){0,1})$', '', name).strip()
+			name = re.sub(r'(((und |etwas |mehr ){0,3}(zum |nach| )*(Abschmecken|Anbraten|Braten|Einfetten|Garnieren|Geschmack|Kochen|Kochen der Nudeln|Rösten|Wälzen|Würzen){1}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
