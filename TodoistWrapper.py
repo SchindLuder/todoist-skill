@@ -92,9 +92,9 @@ class TodoistWrapper():
 		self.log(f'going trough {len(shoppingItems)} shopping items')
 
 		units =['g', 'kg', 'ml', 'l']
-		adjectives = ['braune', 'brauner', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
+		adjectives = ['braune', 'brauner', 'neutrales', 'neutraler', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
 				'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufter', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'schwarzes', 'weißer', 'weiße', 'weißes', 'passierte']
-		amounts = [ 'Blatt', 'Blätter', 'Streifen', 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stücke','Stück', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugeln', 'Kugel']
+		amounts = [ 'Blatt', 'Blätter', 'Glas', 'Gläser','Streifen', 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stücke','Stück', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugeln', 'Kugel']
 
 		unitRegex =''
 		for unit in units:
@@ -115,7 +115,8 @@ class TodoistWrapper():
 		amountRegex = '(' + amountRegex.rstrip('|') + '){0,1}'
 
 		#added 0-9 for example '10 g Dinkelmehl Type 630'
-		regex = r'[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-0,9]{,})'		
+		#factor detection: [0-9]{1,2},[0-9]{1} x ){0,1} 
+		regex = r'[0-9]{1,2},[0-9]{1} x ){0,1}[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-0,9]{,})'		
 
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content'].replace(' - ', '-')
