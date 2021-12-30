@@ -146,8 +146,6 @@ class TodoistSkill(MycroftSkill):
 				if not 'https' in fullString: 
 					continue
 
-				match = re.search(regex, fullString)
-
 				url = 'https' + fullString.split('https')[-1]
 				# remove trailing ) if url was added manually and not via share in Cookidoo
 				url = url.strip(')')
