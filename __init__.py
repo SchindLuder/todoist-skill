@@ -181,7 +181,7 @@ class TodoistSkill(MycroftSkill):
 				factor = match.group('factor')
 				
 				if ',' in factor:
-					factor.replace(',','.')
+					factor = factor.replace(',','.')
 
 
 			ingredientStrings = crawler.get_ingredientStrings(url)
