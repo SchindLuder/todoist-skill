@@ -116,7 +116,7 @@ class TodoistWrapper():
 
 		#added 0-9 for example '10 g Dinkelmehl Type 630'
 		#factor detection: [0-9]{1,2},[0-9]{1} x ){0,1} 
-		regex = r'([0-9]{1,2},[0-9]{1}\sx\s){0,1}[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-0,9]{,})'		
+		regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-0,9]{,})'		
 
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content'].replace(' - ', '-')
