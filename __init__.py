@@ -146,6 +146,8 @@ class TodoistSkill(MycroftSkill):
 				if not 'https' in fullString: 
 					continue
 
+				match = re.search(regex, fullString)
+
 				url = 'https' + fullString.split('https')[-1]
 				# remove trailing ) if url was added manually and not via share in Cookidoo
 				url = url.strip(')')
@@ -171,7 +173,21 @@ class TodoistSkill(MycroftSkill):
 			self.speak_dialog('project.urls.found', {'numberOfUrls' : str(numberOfUrls)})
 
 		for url in urls:
+			match = re.search(' x(?P<factor>[0-9]{1,2},[0-9]{1})$', url)
+
+			factor = None
+
+			if match is not None:
+				url = url.split(' x')[0]
+				url = url.strip(')')
+				factor = match.group('factor')
+
 			ingredientStrings = crawler.get_ingredientStrings(url)
+
+			if factor is not None:
+				for index, ingredientString in enumerate(ingredientStrings):
+					ingredientStrings[index] = factor + ' x '+ ingredientString	
+			
 			allIngredientStrings.extend(ingredientStrings)
 
 		index = 0
