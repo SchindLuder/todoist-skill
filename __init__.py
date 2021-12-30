@@ -179,6 +179,10 @@ class TodoistSkill(MycroftSkill):
 				url = url.split(' x')[0]
 				url = url.strip(')')
 				factor = match.group('factor')
+				
+				if ',' in factor:
+					factor.replace(',','.')
+
 
 			ingredientStrings = crawler.get_ingredientStrings(url)
 
