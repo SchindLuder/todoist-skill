@@ -194,7 +194,7 @@ class TodoistSkill(MycroftSkill):
 				for index, ingredientString in enumerate(ingredientStrings):
 					ingredientDescriptions[index] = factor + ' x '+ ingredientString				
 			
-					amountRegex = r'^(?P<amount>[0-9½¼¾\- ]{0,5}) '
+					amountRegex = r'^(?P<amount>[0-9½¼¾\- ]{0,10}) '
 					match = re.search(amountRegex, ingredientString)
 
 					if match:
