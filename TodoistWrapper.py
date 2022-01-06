@@ -116,7 +116,7 @@ class TodoistWrapper():
 
 		#added 0-9 for example '10 g Dinkelmehl Type 630'
 		#factor detection: [0-9]{1,2},[0-9]{1} x ){0,1} 
-		regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-0,9]{,})'		
+		regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-]{0,3}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'		
 
 		for shoppingItem in shoppingItems:			
 			fullName =shoppingItem['content'].replace(' - ', '-')
@@ -131,8 +131,11 @@ class TodoistWrapper():
 			#remove anything after commata or oder and only use first part for evaluation
 			name = name.split(',')[0].split('oder')[0]
 
+			#e.g. Weizenmehl Type 405
+			name = re.sub(r'Type [0-9]{1,}','', name)
+
 			#remove trailing descriptions
-			name = re.sub(r'(((und |etwas |mehr ){0,3}(zum |nach| )*(Abschmecken|Anbraten|Braten|Einfetten|Garnieren|Geschmack|Kochen|Kochen der Nudeln|Rösten|Wälzen|Würzen){1}){0,1})$', '', name).strip()
+			name = re.sub(r'( (und |etwas |mehr |zum |nach ){1,}([\D]{1,}){0,1})$', '', name).strip()
 						
 			match = re.search(regex, name)
 			
