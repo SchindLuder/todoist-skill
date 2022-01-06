@@ -175,7 +175,7 @@ class TodoistSkill(MycroftSkill):
 			match = re.search(' x(?P<factor>[0-9]{1,2},[0-9]{1})$', url)
 
 			factor = None
-
+			
 			if match is not None:
 				url = url.split(' x')[0]
 				url = url.strip(')')
@@ -189,6 +189,8 @@ class TodoistSkill(MycroftSkill):
 			ingredientDescriptions = [None] * len(ingredientStrings)
 
 			if factor is not None:
+				factorFloat = float(factor.replace(',','.'))
+
 				for index, ingredientString in enumerate(ingredientStrings):
 					ingredientDescriptions[index] = factor + ' x '+ ingredientString				
 			
