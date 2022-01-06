@@ -162,6 +162,7 @@ class TodoistSkill(MycroftSkill):
 		crawler = Crawler.Crawler(self.log.info)
 
 		allIngredientStrings =[]
+		allIngredientDescriptions = []
 
 		urls = getUrlsToCrawl(self.todoist, 'Einkaufsliste', True)
 
@@ -185,12 +186,52 @@ class TodoistSkill(MycroftSkill):
 
 
 			ingredientStrings = crawler.get_ingredientStrings(url)
+			ingredientDescriptions = [None] * len(ingredientStrings)
 
 			if factor is not None:
 				for index, ingredientString in enumerate(ingredientStrings):
-					ingredientStrings[index] = factor + ' x '+ ingredientString	
+					ingredientDescriptions[index] = factor + ' x '+ ingredientString				
 			
+					amountRegex = r'^(?P<amount>[0-9½¼¾\- ]{0,5}) '
+					match = re.search(amountRegex, ingredientString)
+
+					if match:
+						originalAmount = match.group('amount')
+						amount = originalAmount.replace('½', '0.5').replace('¼', '0.25').replace('¾', '0.75')
+				
+						#2 - 3 units ingredient
+						if '-' in amount:
+							amount = amount.split('-')[-1]
+						#2 1/2 units something
+						elif ' ' in amount:
+							try:
+								amountSplit = amount.split(' ')
+								firstNumber = float(amountSplit[0])
+								secondNumber = float(amountSplit[1])
+								amount = firstNumber + secondNumber
+							except ValueError:
+								error = 'could not convert '+amount
+								self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
+						
+						try:
+							amountFloat = float(str(amount))
+
+							totalFloat = factorFloat * amountFloat
+				
+							ingredientStrings[index] = ingredientString.replace(originalAmount, str(totalFloat))
+
+							continue
+
+						except ValueError as e:
+							f = e
+							self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
+							self.log.debug(e)
+
+				# cant calculate the result of the factor. just use the full string
+				ingredientStrings[index] = ingredientDescriptions[index]
+								
 			allIngredientStrings.extend(ingredientStrings)
+			allIngredientDescriptions.extend(ingredientDescriptions)
 
 		index = 0
 
@@ -199,7 +240,7 @@ class TodoistSkill(MycroftSkill):
 		
 		for ingredient in allIngredientStrings:
 			index += 1
-			self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False)
+			self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False,allIngredientDescriptions[index-1])
 
 			if index % 15 == 0:
 				self.todoist.api.commit()
