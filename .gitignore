@@ -37,5 +37,8 @@ ehthumbs.db
 Thumbs.db
 
 TodoistToken
+
+#visual studio stuff
+.vs/**
 .pyc
 
