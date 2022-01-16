@@ -40,5 +40,6 @@ TodoistToken
 
 #visual studio stuff
 .vs/**
-.pyc
+__pycache__/**
+*.pyc
 
