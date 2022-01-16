@@ -91,6 +91,20 @@ class TodoistSkill(MycroftSkill):
 				'listItem' : str(listItem)
 			})		
 	
+	def readItemList(self, itemNames):
+		for i, item in enumerate(itemNames):
+			item = (str(item)).split(',')[0]
+			
+			if (i == (numberOfItems -1)) & (numberOfItems != 1):
+				self.speak('und ' + item)
+				break
+				
+			if numberOfItems is 1:
+				self.speak('nur ' + item)			
+				break
+			
+			self.speak(item)
+
 	@intent_handler('shoppinglist.read.intent')
 	def handle_read_shoppinglist(self, message):
 		if not self.checkTodoistConfiguration():
@@ -115,21 +129,7 @@ class TodoistSkill(MycroftSkill):
 		
 		self.log.info(str(numberOfItems) + ' open items found')
 		
-		for i, item in enumerate(itemNames):
-
-			item = (str(item)).split(',')[0]
-			
-			self.log.info(str(item))
-			
-			if (i == (numberOfItems -1)) & (numberOfItems != 1):
-				self.speak('und ' + item)
-				break
-				
-			if numberOfItems is 1:
-				self.speak('nur ' + item)			
-				break
-			
-			self.speak(item)
+		self.readItemList(itemNames)
 
 	@intent_handler('shoppinglist.sync.intent')
 	def handle_sync_shoppinglist(self,message):
@@ -319,8 +319,12 @@ class TodoistSkill(MycroftSkill):
 
 		self.speak_dialog('shoppinglist.deleted')
 		self.todoist.api.commit()
-		
 
+	@intent_handler('read.due.items.intent')
+	def handle_delete_shoppinglist(self, message):				
+		itemsForDay = self.todoist.getTasksOfDay()
+		self.readItemList(itemsForDay)
+		
 def create_skill():
 	return TodoistSkill()
 

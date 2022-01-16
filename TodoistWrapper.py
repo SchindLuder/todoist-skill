@@ -1,5 +1,7 @@
 import todoist
 import re
+from datetime import date
+from datetime import datetime as dt
 
 class TodoistWrapper():
 	def __init__(self, token, loggingMethod):
@@ -286,3 +288,29 @@ class TodoistWrapper():
 
 		if hasSections:
 			self.api.commit()
+
+	def getTasksOfDay(self, day = None, projectName = None):
+		self.api.sync()
+	
+		itemsForDay = list()		
+		dateString = day
+		dateObject = None
+
+		if day is None: 			
+			dateString = date.today().strftime("%Y-%m-%d")
+			dateObject = dt.strptime(dateString, "%Y-%m-%d")
+		else:
+			dateObject = dt.strptime(day, "%Y-%m-%d")
+
+
+		openItemsWithDue = list(filter(lambda x: (x['checked'] == 0 and x['due'] != None), self.api['items']))
+
+		for openItem in openItemsWithDue:
+			openItemDueDate = openItem['due']['date']
+			# date = Due date in the format of YYYY-MM-DD (RFC 3339). 
+			itemDueDate = dt.strptime(openItemDueDate, "%Y-%m-%d")
+			
+			if itemDueDate < dateObject or openItemDueDate == dateString:
+				itemsForDay.append(openItem['content'])			
+
+		return itemsForDay		

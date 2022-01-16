@@ -8,7 +8,7 @@ with open('TodoistToken', 'r') as file:
 
 todoist = TodoistWrapper(token, print)
 todoist.api.sync()
-openItems = todoist.getOpenItemsOfProject('Einkaufsliste')
+openItems = todoist.getTasksOfDay()
 #crawler = Crawler(print)
 
 print(openItems)
