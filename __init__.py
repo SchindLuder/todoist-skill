@@ -321,7 +321,7 @@ class TodoistSkill(MycroftSkill):
 		self.todoist.api.commit()
 
 	@intent_handler('read.due.items.intent')
-	def handle_read_due_shoppinglist(self, message):				
+	def handle_read_due_items_intent(self, message):				
 		itemsForDay = self.todoist.getTasksOfDay()
 		self.readItemList(itemsForDay)
 		
