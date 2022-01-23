@@ -305,7 +305,8 @@ class TodoistWrapper():
 		def filterOpenItemsWithDue(item):
 			try:
 				return item['checked'] == 0 and item['due'] != None
-			except AttributeError:
+			except KeyError:
+				self.log(f'item does not have property \'checked\': {item}')
 				return False
 
 		openItemsWithDue = list(filter(filterOpenItemsWithDue, self.api['items']))
