@@ -303,7 +303,7 @@ class TodoistWrapper():
 			dateObject = dt.strptime(day, "%Y-%m-%d")
 
 
-		openItemsWithDue = list(filter(lambda x: (x['checked'] == 0 and x['due'] != None), self.api['items']))
+		openItemsWithDue = list(filter(lambda x: (hasattr(x, 'checked') and x['checked'] == 0 and hasattr(x, 'due') and x['due'] != None), self.api['items']))
 
 		for openItem in openItemsWithDue:
 			openItemDueDate = openItem['due']['date']
