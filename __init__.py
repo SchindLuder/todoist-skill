@@ -332,15 +332,15 @@ class TodoistSkill(MycroftSkill):
 				
 		dueDateTime = date.today()
 		if dueDate is 'heute':
-			timedelta = timedelta(days = 0)
+			addedDays = timedelta(days = 0)
 		elif dueDate is 'morgen':
-			timedelta = timedelta(days = 1)
+			addedDays = timedelta(days = 1)
 		elif 'woche' in dueDate:
-			timedelta = timedelta(days = 7)
+			addedDays = timedelta(days = 7)
 		elif 'monat' in dueDate:
-			timedelta = timedelta(days = 31)
+			addedDays = timedelta(days = 31)
 
-		dueDateTime = date.today() + timedelta
+		dueDateTime = date.today() + addedDays
 
 		itemsForDay = self.todoist.getTasksOfDay(dueDateTime.strftime("%Y-%m-%d"))
 		self.readItemList(itemsForDay)
