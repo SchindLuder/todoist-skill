@@ -8,6 +8,9 @@ from math import ceil
 from . import TodoistWrapper
 from . import Crawler
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
+from datetime import date
+from datetime import datetime as dt
+from datetime import timedelta
 
 class TodoistSkill(MycroftSkill):
 	def __init__(self):
@@ -325,8 +328,21 @@ class TodoistSkill(MycroftSkill):
 	@intent_handler('read.due.items.intent')
 	def handle_read_due_items_intent(self, message):
 		dueDate = message.data.get('duedate')
-		self.log.info(f'read due items for dueDate:\'{dueDate}\'')			   
-		itemsForDay = self.todoist.getTasksOfDay()
+		self.log.info(f'read due items for dueDate:\'{dueDate}\'')
+				
+		dueDateTime = date.today()
+		if dueDate is 'heute':
+			timedelta = timedelta(days = 0)
+		elif dueDate is 'morgen':
+			timedelta = timedelta(days = 1)
+		elif 'woche' in dueDate:
+			timedelta = timedelta(days = 7)
+		elif 'monat' in dueDate:
+			timedelta = timedelta(days = 31)
+
+		dueDateTime = date.today() + timedelta
+
+		itemsForDay = self.todoist.getTasksOfDay(dueDateTime.strftime("%Y-%m-%d"))
 		self.readItemList(itemsForDay)
 		
 def create_skill():
