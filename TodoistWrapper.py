@@ -304,7 +304,7 @@ class TodoistWrapper():
 
 		def filterOpenItemsWithDue(item):
 			try:
-				return x['checked'] == 0 and x['due'] != None
+				return item['checked'] == 0 and item['due'] != None
 			except AttributeError:
 				return False
 
