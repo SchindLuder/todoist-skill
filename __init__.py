@@ -324,7 +324,8 @@ class TodoistSkill(MycroftSkill):
 
 	@intent_handler('read.due.items.intent')
 	def handle_read_due_items_intent(self, message):
-		self.log.info('read due items')
+		dueDate = message.data.get('duedate')
+		self.log.info(f'read due items for dueDate:\'{dueDate}\'')			   
 		itemsForDay = self.todoist.getTasksOfDay()
 		self.readItemList(itemsForDay)
 		
