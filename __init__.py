@@ -92,6 +92,8 @@ class TodoistSkill(MycroftSkill):
 			})		
 	
 	def readItemList(self, itemNames):
+		numberOfItems = len(itemNames)
+
 		for i, item in enumerate(itemNames):
 			item = (str(item)).split(',')[0]
 			
