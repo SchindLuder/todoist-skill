@@ -331,6 +331,7 @@ class TodoistSkill(MycroftSkill):
 		self.log.info(f'read due items for dueDate:\'{dueDate}\'')
 				
 		dueDateTime = date.today()
+		addedDays = timedelta(days = 0)
 		if dueDate is 'heute':
 			addedDays = timedelta(days = 0)
 		elif dueDate is 'morgen':
