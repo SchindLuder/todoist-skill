@@ -411,14 +411,26 @@ class TodoistSkill(MycroftSkill):
 
 		self.speak('Antworte ja wenn ich weiterlesen soll')
 
-		for ingredient in ingredients:
-			next = False
-						
-			while next is False:
-				self.speak(ingredient)
-				next = self.ask_yesno('continue') == 'yes'
+		waitTime = 500
+
+		for ingredient in ingredients:			
+			text = ingredient.split(',')[0]
+			waitTime = 1
+
+			while True:
+				self.speak(text)
+				resp = self.ask_yesno('weiter') 
 				
-		self.speak('das wars')
+				if resp == 'yes':					
+					continue
+
+				if resp == 'no':
+					break
+				
+				time.sleep(waitTime)
+				waitTime += 1
+
+		self.speak('das war es')
 		
 def create_skill():
 	return TodoistSkill()
