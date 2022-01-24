@@ -408,8 +408,6 @@ class TodoistSkill(MycroftSkill):
 		
 		ingredients = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/' + recipeId)		
 
-		self.speak('Ja für weiter, nein zum beenden')
-
 		def readIngredientsInLoop(ingredients):
 			for ingredient in ingredients:			
 				text = ingredient.split(',')[0]
