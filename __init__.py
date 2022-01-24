@@ -408,28 +408,29 @@ class TodoistSkill(MycroftSkill):
 		
 		ingredients = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/' + recipeId)		
 
-		self.speak('Antworte ja wenn ich weiterlesen soll')
+		self.speak('Ja für weiter, nein zum beenden')
 
-		waitTime = 500
+		def readIngredientsInLoop(ingredients):
+			for ingredient in ingredients:			
+				text = ingredient.split(',')[0]
+				waitTime = 1
 
-		for ingredient in ingredients:			
-			text = ingredient.split(',')[0]
-			waitTime = 1
-
-			while True:
-				self.speak(text)
-				resp = self.ask_yesno('weiter') 
+				while True:
+					self.speak(text)
+					resp = self.ask_yesno('') 
 				
-				if resp == 'yes':					
-					continue
+					if resp == 'no':					
+						return
 
-				if resp == 'no':
-					break
+					if resp == 'yes':
+						break
 				
-				time.sleep(waitTime)
-				waitTime += 1
+					time.sleep(waitTime)
+					waitTime += 1
 
 		self.speak('das war es')
+
+
 		
 def create_skill():
 	return TodoistSkill()
