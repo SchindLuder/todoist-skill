@@ -428,9 +428,9 @@ class TodoistSkill(MycroftSkill):
 					time.sleep(waitTime)
 					waitTime += 1
 
-		self.speak('das war es')
+			self.speak('das war es')
 
-
+		readIngredientsInLoop(ingredients)
 		
 def create_skill():
 	return TodoistSkill()
