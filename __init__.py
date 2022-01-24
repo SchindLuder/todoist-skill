@@ -417,7 +417,7 @@ class TodoistSkill(MycroftSkill):
 
 				while True:
 					self.speak(text)
-					resp = self.ask_yesno('') 
+					resp = self.ask_yesno('weiter') 
 				
 					if resp == 'no':					
 						return
