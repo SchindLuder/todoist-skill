@@ -348,7 +348,9 @@ class TodoistSkill(MycroftSkill):
 
 	@intent_handler('read.ingredients.intent')
 	def handle_read_ingredients(self,message):
-		recipeName = message.data.get('recipeName')
+		recipeName = str(message.data.get('recipeName'))
+
+		self.log.info(f'reading ingredients for {recipeName}')
 
 		crawler = Crawler.Crawler(self.log.info)
 
