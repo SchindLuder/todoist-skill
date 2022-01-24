@@ -350,7 +350,7 @@ class TodoistSkill(MycroftSkill):
 	def handle_read_ingredients(self,message):
 		self.log.info(f'data: {str(message.data)}')
 
-		recipeName = str(message.data.get('recipeName')).split('für ')[-1]
+		recipeName = str(message.data.get('recipename')).split('für ')[-1]
 		self.log.info(f'reading ingredients for {recipeName}')
 
 		crawler = Crawler.Crawler(self.log.info)
