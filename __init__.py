@@ -400,7 +400,7 @@ class TodoistSkill(MycroftSkill):
 
 			return list(recipeIdsAndNames.keys())[index]
 
-		recipeId = getDesiredRecipeId(namesAndRecipeIds, 0)
+		recipeId = getDesiredRecipeId(recipeIdsAndNames, 0)
 
 		if recipeId is None:
 			self.speak_dialog('please.chose.valid.option')
