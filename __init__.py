@@ -345,6 +345,76 @@ class TodoistSkill(MycroftSkill):
 
 		itemsForDay = self.todoist.getTasksOfDay(dueDateTime.strftime("%Y-%m-%d"))
 		self.readItemList(itemsForDay)
+
+	@intent_handler('read.ingredients.intent')
+	def handle_read_ingredients(self,message):
+		recipeName = message.data.get('recipeName')
+
+		crawler = Crawler.Crawler(self.log.info)
+
+		recipeIdsAndNames = crawler.getNamesAndRecipeIdsFromQuery(recipeName)
+		
+		numberOfMatches = len(recipeIdsAndNames)
+
+		if numberOfMatches is 0:
+			self.speak_dialog('no.recipes.to.read.found', {
+					'recipeName' : recipeName
+				})
+			return
+
+		def getDesiredRecipeId(recipeIdsAndNames,retries):
+			if len(recipeIdsAndNames) == 1:
+				return list(recipeIdsAndNames.keys())[0]						
+
+			def builtQuestionText(recipeIdsAndNames):
+				index = 0
+				questionText = ''
+
+				for recipeId in recipeIdsAndNames:					
+					name = recipeIdsAndNames[recipeId]
+					questionText = questionText.append(f' {str(index+1)} : {name}')
+					index = index + 1
+
+					if index > 3:
+						return questionText
+				
+				return questionText
+			
+			questionText = builtQuestionText(recipeIdsAndNames)
+
+			response = self.get_response('chose.recipe.index', {'question' : questionText})
+
+			index = None
+			try:
+				index = int(response, 10)
+			except ValueError:
+				index = None
+						
+			if index is None or index < 0 or index > len(recipeIdsAndNames):
+				if retries > 3:
+					return None
+
+				return getDesiredRecipeId(recipeIdsAndNames, retries + 1)
+
+			return list(recipeIdsAndNames.keys())[index]
+
+		recipeId = getDesiredRecipeId(namesAndRecipeIds, 0)
+
+		if recipeId is None:
+			self.speak_dialog('please.chose.valid.option')
+		
+		ingredients = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/' + recipeId)		
+
+		self.speak('Antworte ja wenn ich weiterlesen soll')
+
+		for ingredient in ingredients:
+			next = False
+						
+			while next is False:
+				self.speak(ingredient)
+				next = self.ask_yesno('continue') == 'yes'
+				
+		self.speak('das wars')
 		
 def create_skill():
 	return TodoistSkill()

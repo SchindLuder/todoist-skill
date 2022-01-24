@@ -4,20 +4,24 @@ from datetime import date
 from datetime import datetime as dt
 from datetime import timedelta
 
-a = date.today()
+crawler = Crawler(print)
 
-b = timedelta(month=1)
+#with open('TodoistToken', 'r') as file:
+#    token = file.read().replace('\n', '')
 
-c = a+b
+#todoist = TodoistWrapper(token, print)
+#todoist.api.sync()
 
-token = None
+recipeIdsAndNames = crawler.getNamesAndRecipeIdsFromQuery('Gulasch ungarisch')
 
-with open('TodoistToken', 'r') as file:
-    token = file.read().replace('\n', '')
+numberOfMatches = len(recipeIdsAndNames)
 
-todoist = TodoistWrapper(token, print)
-todoist.api.sync()
-openItems = todoist.getTasksOfDay()
-#crawler = Crawler(print)
+for recipeId in recipeIdsAndNames:
+    ingredients = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/' + recipeId)
+    a = ingredients
+
+
+
+
 
 print(openItems)
