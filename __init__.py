@@ -348,10 +348,9 @@ class TodoistSkill(MycroftSkill):
 
 	@intent_handler('read.ingredients.intent')
 	def handle_read_ingredients(self,message):
-
 		self.log.info(f'data: {str(message.data)}')
 
-		recipeName = str(message.data.get('recipeName'))
+		recipeName = str(message.data.get('recipeName')).split('für ')[-1]
 		self.log.info(f'reading ingredients for {recipeName}')
 
 		crawler = Crawler.Crawler(self.log.info)
@@ -390,7 +389,7 @@ class TodoistSkill(MycroftSkill):
 
 			index = None
 			try:
-				index = int(response, 10)
+				index = int(response)
 			except ValueError:
 				index = None
 						
