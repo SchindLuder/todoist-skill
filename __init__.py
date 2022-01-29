@@ -57,7 +57,9 @@ class TodoistSkill(MycroftSkill):
 			self.speak('ich hab den gewünschten Eintrag nicht verstanden')
 			return
 		
-		self.todoist.addItemToProject('Einkaufsliste', str(listItem), None, True)
+		upperCaseListItem = (str(listItem)).replace(test[0], test[0].upper(),1)
+
+		self.todoist.addItemToProject('Einkaufsliste', upperCaseListItem, None, True)
 		
 		self.speak_dialog('project.added.item', {
 			'project': 'Einkaufsliste', 
@@ -375,7 +377,7 @@ class TodoistSkill(MycroftSkill):
 
 				for recipeId in recipeIdsAndNames:					
 					name = recipeIdsAndNames[recipeId]
-					questionText +=f' {str(index+1)} : {name}'
+					questionText +=f'{str(index+1)} : {name}, '
 					index = index + 1
 
 					if index > 3:
@@ -436,8 +438,8 @@ class TodoistSkill(MycroftSkill):
 
 			self.speak('das war es')
 
-		readIngredientsInLoop(ingredients)
-		
+		readIngredientsInLoop(ingredients)		
+
 def create_skill():
 	return TodoistSkill()
 
