@@ -42,11 +42,24 @@ class Crawler():
             return None
                 
         resultJson = json.loads(resp.content)
-        hits = resultJson['results'][0]['hits']
+        allHits = resultJson['results'][0]['hits']
 
         recipeNamesAndIds = {}
 
+        def filterFullhits(hit):
+            try:
+                matchLevel = hit['_highlightResult']['title']['matchLevel']
+                return matchLevel == 'full'
+            except KeyError:
+                return False
+
+        hits = list(filter(filterFullhits, allHits))
+
+        if len(hits) is 0:
+            hits = allHits
+
         for hit in hits:
+            result = hit['_highlightResult']['title']['matchLevel']
             recipeNamesAndIds[str(hit['objectID'])] = hit['title']
 
         return recipeNamesAndIds
