@@ -257,8 +257,39 @@ class TodoistSkill(MycroftSkill):
 		if index % 15 != 0:
 			self.todoist.api.commit()
 
-		self.todoist.sortShoppingList()
+		unsortedItems = self.todoist.sortShoppingList()
 		self.speak('Einkaufsliste wurde sortiert')
+
+		def unsortedItemDialog(unsortedItems):
+			if len(unsortedItems) == 0:
+				return
+			
+			answer = self.ask_yesno('Es gibt Einträge, die ich nicht sortieren konnte. Möchtest du mir jetzt die Kategorien dafür sagen?')
+
+			if answer != 'yes':
+				return
+
+			for unsortedItem in unsortedItems:
+				retry = 0
+				while retry < 3:
+					answer = self.get_response('ask.for.category', {
+								'itemName' : unsortedItem
+							})
+
+					if answer is None or answer == '' or answer == ' ':
+						retry +=1
+						continue
+
+					category = answer.replace(answer[0], answer[0].upper())
+
+					sectionId = self.todoist.getOrAddSection('Sortierung_Einkaufsliste', str(answer))
+
+					break
+
+					#self.todoist.moveItemToSection('Sortierung_Einkaufsliste', unsortedItem, str(answer))
+
+
+		unsortedItemDialog(unsortedItems)		
 
 		def deleteEmptySections():
 			projectId = self.todoist.getProjectIdByName('Einkaufsliste')

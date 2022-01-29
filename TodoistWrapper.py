@@ -83,6 +83,19 @@ class TodoistWrapper():
 		
 		return itemOrderIds
 
+	def getConfigElements(self, projectName, sectionName):	
+		configElements = []
+
+		sectionId = self.getOrAddSection(projectName, sectionName)
+		openProjectItems = self.getOpenItemsOfProject(projectName)  
+		itemsInSection = list(filter(lambda x: x['is_deleted'] != 1 and x['section_id'] == sectionId, openProjectItems))
+		
+		for item in itemsInSection:
+			content = str(item.data['content'])
+			configElements.extend(content.split(','))
+
+		return configElements
+
 	def sortShoppingList(self, listName = 'Einkaufsliste'):
 		shoppingItems = self.getOpenItemsOfProject(listName)
 		itemOrderIds = self.getItemOrderIds()
@@ -94,25 +107,28 @@ class TodoistWrapper():
 		self.log(f'going trough {len(shoppingItems)} shopping items')
 
 		units =['g', 'kg', 'ml', 'l']
-		adjectives = ['braune', 'brauner', 'neutrales', 'neutraler', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
-				'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufter', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'schwarzes', 'weißer', 'weiße', 'weißes', 'passierte']
-		amounts = [ 'Blatt', 'Blätter', 'Glas', 'Gläser','Streifen', 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stücke','Stück', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugeln', 'Kugel']
+		adjectives = self.getConfigElements('Mycroft-Settings', 'Adjektive')
+			#['braune', 'brauner', 'neutrales', 'neutraler', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
+			#'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufter', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'schwarzes', 'weißer', 'weiße', 'weißes', 'passierte']
+		
+		amounts = self.getConfigElements('Mycroft-Settings', 'Einheiten')
+		#[ 'Blatt', 'Blätter', 'Glas', 'Gläser','Streifen', 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stücke','Stück', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugeln', 'Kugel']
 
 		unitRegex =''
 		for unit in units:
-			unitRegex += unit + ' |'
+			unitRegex += unit.replace('.','\\.') + ' |'
 
 		unitRegex = '(' + unitRegex.rstrip('|') +'){0,2}'
 
 		adjectivesRegex = ''
 		for adjective in adjectives:
-			adjectivesRegex += adjective + ' |'
+			adjectivesRegex += adjective.replace('.','\\.') + ' |'
 
 		adjectivesRegex = '(' + adjectivesRegex.rstrip('|') +'){0,}'
 
 		amountRegex = ''
 		for amount in amounts:
-			amountRegex += amount + ' |'
+			amountRegex += amount.replace('.','\\.') + ' |'
 
 		amountRegex = '(' + amountRegex.rstrip('|') + '){0,1}'
 
@@ -167,8 +183,6 @@ class TodoistWrapper():
 			
 		#save unsorted (unknown) items so that an order can be configured
 		unsortedSectionId = self.getOrAddSection('Sortierung_Einkaufsliste', 'Unsortiert')
-		
-		unsortedItemStringsForDialog = None
 
 		for unsortedItem in unsortedItems: 
 			description = ''
@@ -176,12 +190,6 @@ class TodoistWrapper():
 				description = str(nameToFullName[unsortedItem])
 
 			self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem,unsortedSectionId, False, description)
-			
-			if unsortedItemStringsForDialog is None:				
-				unsortedItemStringsForDialog = str(unsortedItem)
-				continue											
-			
-			unsortedItemStringsForDialog += (' und ' + str(unsortedItem))	
 
 		self.log('ordering items')
 		#build final order for items contained in shoppingList
@@ -241,6 +249,8 @@ class TodoistWrapper():
 			self.api.commit();
 		
 		self.api.commit();
+
+		return unsortedItems
 
 
 	def getOrAddSection(self, projectName, sectionName):
