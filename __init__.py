@@ -57,7 +57,7 @@ class TodoistSkill(MycroftSkill):
 			self.speak('ich hab den gewünschten Eintrag nicht verstanden')
 			return
 		
-		upperCaseListItem = (str(listItem)).replace(test[0], test[0].upper(),1)
+		upperCaseListItem = (str(listItem)).replace(listItem[0], listItem[0].upper(),1)
 
 		self.todoist.addItemToProject('Einkaufsliste', upperCaseListItem, None, True)
 		
@@ -287,7 +287,6 @@ class TodoistSkill(MycroftSkill):
 					break
 
 					#self.todoist.moveItemToSection('Sortierung_Einkaufsliste', unsortedItem, str(answer))
-
 
 		unsortedItemDialog(unsortedItems)		
 
