@@ -4,18 +4,31 @@ from datetime import date
 from datetime import datetime as dt
 from datetime import timedelta
 
-crawler = Crawler(print)
+class selfMockup(object):
+    pass
 
+self = selfMockup()
 
+#crawler = Crawler(print)
 with open('TodoistToken', 'r') as file:
     token = file.read().replace('\n', '')
 
-todoist = TodoistWrapper(token, print)
-todoist.api.sync()
+self.todoist = TodoistWrapper(token, print)
+self.todoist.api.sync()
 
-test = todoist.sortShoppingList()
+listItem = 'eier und brot und muskat'
 
-recipeIdsAndNames = crawler.getNamesAndRecipeIdsFromQuery('Gulasch ungarisch')
+for singleItem in listItem.split('und'):
+    singleItem = singleItem.strip()
+    upperCaseListItem = (str(singleItem)).replace(singleItem[0], singleItem[0].upper(),1)
+    self.todoist.addItemToProject('Einkaufsliste', upperCaseListItem, None, True)
+
+exit()
+
+
+
+
+recipeIdsAndNames = crawler.getNamesAndRecipeIdsFromQuery('soljanka')
 
 numberOfMatches = len(recipeIdsAndNames)
 

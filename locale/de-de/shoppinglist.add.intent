@@ -1,2 +1,2 @@
-schreib {listItem} auf die einkaufsliste
+(schreib|schreibe) {listItem} auf die einkaufsliste
 (füg|füge) {listItem} zur einkaufsliste hinzu

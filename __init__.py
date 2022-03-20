@@ -55,11 +55,12 @@ class TodoistSkill(MycroftSkill):
 		
 		if listItem is None:			
 			self.speak('ich hab den gewünschten Eintrag nicht verstanden')
-			return
-		
-		upperCaseListItem = (str(listItem)).replace(listItem[0], listItem[0].upper(),1)
+			return		
 
-		self.todoist.addItemToProject('Einkaufsliste', upperCaseListItem, None, True)
+		for singleItem in listItem.split('und'):
+			singleItem = singleItem.strip()
+			upperCaseListItem = (str(singleItem)).replace(singleItem[0], singleItem[0].upper(),1)
+			self.todoist.addItemToProject('Einkaufsliste', upperCaseListItem, None, True)
 		
 		self.speak_dialog('project.added.item', {
 			'project': 'Einkaufsliste', 
@@ -382,7 +383,7 @@ class TodoistSkill(MycroftSkill):
 	def handle_read_ingredients(self,message):
 		self.log.info(f'data: {str(message.data)}')
 
-		recipeName = str(message.data.get('recipename')).split('für ')[-1]
+		recipeName = str(message.data.get('recipename')).split('für ')[-1].removesuffix(' vor')
 		self.log.info(f'reading ingredients for {recipeName}')
 
 		crawler = Crawler.Crawler(self.log.info)
