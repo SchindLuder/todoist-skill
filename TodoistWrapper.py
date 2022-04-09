@@ -74,12 +74,32 @@ class TodoistWrapper():
 			itemsInSection.sort(key = sortByChildOrder)
 		
 			for itemInSection in itemsInSection:
-				#item already added
-				if itemInSection in itemOrderIds:
-					continue
-				#add name and counter for later sorting
-				itemOrderIds[str(itemInSection['content'])] = globalCounter;
-				globalCounter+= 1
+				content = str(itemInSection['content'])
+
+				for singleItemInSection in content.split(','):
+					#item already added
+					if singleItemInSection in itemOrderIds:
+						continue
+
+					def getPluralItem(item):
+						if item[-1] is 'e':
+							return item.append('n')
+
+						if item[-1] is 'l':
+							return item.append('n')
+
+						if item[-1] is 't':
+							return item.append('en')
+
+						if item[-1] is 's':
+							return item.append('se')
+						
+						if item[-1] is 'o':
+							return item.append('s')
+
+					#add name and counter for later sorting
+					itemOrderIds[singleItemInSection] = globalCounter;
+					globalCounter+= 1
 		
 		return itemOrderIds
 
@@ -207,7 +227,7 @@ class TodoistWrapper():
 		sortItems = self.getOpenItemsOfProject('Sortierung_Einkaufsliste')
 
 		def tryGetSectionForItem(itemOfSortList):
-			sortItem = next((x for x in sortItems if x['content'] == orderName), None)						
+			sortItem = next((x for x in sortItems if (x['content'] == orderName or (orderName+',') in x['content'] or orderName in x['content'])), None)						
 			sectionName = self.api.sections.get_by_id(sortItem['section_id'])['name']
 			sectionId = self.getOrAddSection('Einkaufsliste', str(sectionName))
 			return sectionId

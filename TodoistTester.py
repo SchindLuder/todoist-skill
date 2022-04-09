@@ -17,30 +17,9 @@ with open('TodoistToken', 'r') as file:
 self.todoist = TodoistWrapper(token, print)
 self.todoist.api.sync()
 
-listItem = 'Mehl und sechs eier'
-itemsWithNumbers = []
-
-for singleItem in listItem.split('und'):
-    item = singleItem.strip()
-
-    for word in item.split(' '):
-        try:
-            number = w2n.convert(word)
-            item = item.replace(word, str(number))
-        except KeyError:
-            #not a number so replace first character with uppercase
-            item = (str(item)).replace(word[0], word[0].upper(),1)
-            continue
-    
-    itemsWithNumbers.append(item)
-
-    #upperCaseListItem = (str(singleItem)).replace(singleItem[0], singleItem[0].upper(),1)
-    #self.todoist.addItemToProject('Einkaufsliste', upperCaseListItem, None, True)
+self.todoist.sortShoppingList()
 
 exit()
-
-
-
 
 recipeIdsAndNames = crawler.getNamesAndRecipeIdsFromQuery('soljanka')
 

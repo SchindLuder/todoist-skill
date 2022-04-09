@@ -70,6 +70,10 @@ class TodoistSkill(MycroftSkill):
 					item = item.replace(word, str(number))
 				except KeyError:
 					#not a number so replace first character with uppercase
+
+					if word is 'g':
+						continue
+
 					item = (str(item)).replace(word[0], word[0].upper(),1)
 					continue
 
