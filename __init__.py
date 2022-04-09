@@ -4,6 +4,7 @@ import time
 import subprocess
 import numpy
 import threading
+import zahlwort2num as w2n
 from math import ceil
 from . import TodoistWrapper
 from . import Crawler
@@ -55,12 +56,24 @@ class TodoistSkill(MycroftSkill):
 		
 		if listItem is None:			
 			self.speak('ich hab den gewünschten Eintrag nicht verstanden')
-			return		
+			return
+
+		itemsWithNumbers = []
 
 		for singleItem in listItem.split('und'):
-			singleItem = singleItem.strip()
-			upperCaseListItem = (str(singleItem)).replace(singleItem[0], singleItem[0].upper(),1)
-			self.todoist.addItemToProject('Einkaufsliste', upperCaseListItem, None, True)
+			item = singleItem.strip()
+
+			for word in item.split(' '):
+				try:
+					#try convert any word within to number
+					number = w2n.convert(word)
+					item = item.replace(word, str(number))
+				except KeyError:
+					#not a number so replace first character with uppercase
+					item = (str(item)).replace(word[0], word[0].upper(),1)
+					continue
+
+			self.todoist.addItemToProject('Einkaufsliste', item, None, True)
 		
 		self.speak_dialog('project.added.item', {
 			'project': 'Einkaufsliste', 
