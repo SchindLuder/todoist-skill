@@ -128,11 +128,8 @@ class TodoistWrapper():
 
 		units =['g', 'kg', 'ml', 'l']
 		adjectives = self.getConfigElements('Mycroft-Settings', 'Adjektive')
-			#['braune', 'brauner', 'neutrales', 'neutraler', 'frisch', 'frische', 'frisches','gefrorene', 'gefrorenes','gelb', 'gelbe','gemischte', 'gemischtes','gestr.', 'gestrichen', 
-			#'gestrichene', 'getrocknete', 'getrocknetes', 'roter', 'rote', 'rot', 'grün', 'grüne',   'reife', 'reifes',   'geh.', 'gehäufter', 'gehäufte', 'gehäuftes', 'schwarze', 'schwarzer', 'schwarzes', 'weißer', 'weiße', 'weißes', 'passierte']
-		
+
 		amounts = self.getConfigElements('Mycroft-Settings', 'Einheiten')
-		#[ 'Blatt', 'Blätter', 'Glas', 'Gläser','Streifen', 'EL', 'TL', 'Stängel', 'Zweig', 'Zweige','Stücke','Stück', 'Liter', 'Pack', 'Packung', 'Päckchen', 'Bund', 'Pk', 'Pck.', 'Flasche', 'Flaschen', 'Dose', 'Dosen', 'Prisen','Prise', 'Msp.', 'Messerspitze', 'Messerspitzen', 'Würfel', 'Kugeln', 'Kugel']
 
 		unitRegex =''
 		for unit in units:
@@ -154,10 +151,10 @@ class TodoistWrapper():
 
 		#added 0-9 for example '10 g Dinkelmehl Type 630'
 		#factor detection: [0-9]{1,2},[0-9]{1} x ){0,1} 
-		regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\. ]{0,10}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'		
+		regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\.]{0,10}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'		
 
 		for shoppingItem in shoppingItems:			
-			fullName =shoppingItem['content'].replace(' - ', '-')
+			fullName =shoppingItem['content']
 
 			#ignore recipe urls
 			if 'http' in fullName:
@@ -174,6 +171,9 @@ class TodoistWrapper():
 
 			#remove trailing descriptions
 			name = re.sub(r'( (und |etwas |mehr |zum |nach ){1,}([\D]{1,}){0,1})$', '', name).strip()
+
+			#
+			name = name.replace(' - ','-')
 						
 			match = re.search(regex, name)
 			
