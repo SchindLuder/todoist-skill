@@ -4,66 +4,103 @@ import json
 from requests.structures import CaseInsensitiveDict
 from bs4 import BeautifulSoup
 import urllib.parse
+import re
 
 class Crawler():
     """description of class"""
     def __init__(self, loggingMethod):
         self.log = loggingMethod
+        self.initClientKeyAndAppId()
+
+    def initClientKeyAndAppId(self):
+        cookies = {    'tmde-lang': 'de-DE'}
+        headers = {
+            'authority': 'cookidoo.de',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
+	        'dnt': '1',
+            'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+        }
+        params = {
+            'context': 'recipes',
+            'countries': 'de',
+            'query': 'test',
+        }
+
+        response = requests.get('https://cookidoo.de/search/de-DE', params=params, cookies=cookies, headers=headers)
+        match = re.search('client-key=\"(?P<clientKey>[A-z0-9]{1,})\"', response.text)
+
+        if match is None:
+            exceptionMessage= 'could not get clientKey from request'
+            self.log(exceptionMessage)
+            raise Exception(exceptionMessage) 
+
+        self.clientKey = match.group('clientKey')
+
+        match = re.search('app-id=\"(?P<appId>[A-Za-z0-9]{1,})\"', response.text)
+
+        if match is None:
+            exceptionMessage= 'could not get appId from request'
+            self.log(exceptionMessage)
+            raise Exception(exceptionMessage) 
+
+        self.appId = match.group('appId')
+
+        self.log('Initialized clientKey and AppId')
 
     def download_url(self, url):
         return requests.get(url).text
 
-    def getNamesAndRecipeIdsFromQuery(self,queryWords):       
-        url = "https://3ta8nt85xj-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.10.3)%3B%20Browser%20(lite)&x-algolia-api-key=NzQxMWQ2OGMxMGQ5MDExZDRhZGVmZTViZmRhOWRiYzZmODRiNWI3YWUwNGQxYjY4N2NmNzk3NGI1M2FhYmFlYXZhbGlkVW50aWw9MTY0MzU0Nzg4MyZyZXN0cmljdEluZGljZXM9JTVCJTIyc3VnZ2VzdGlvbnMtcmVjaXBlcy1wcm9kLWZyJTIyJTJDJTIyY2F0ZWdvcnktc3VnZ2VzdGlvbnMtcHJvZC1mciUyMiUyQyUyMnJlY2lwZXMtcHJvZC1mciUyMiUyQyUyMnJlY2lwZXMtcHJvZC1mci1ieS1wdWJsaXNoZWRBdC1kZXNjJTIyJTJDJTIycmVjaXBlcy1wcm9kLWZyLWJ5LXRpdGxlLWFzYyUyMiUyQyUyMnJlY2lwZXMtcHJvZC1mci1ieS10b3RhbFRpbWUtYXNjJTIyJTJDJTIycmVjaXBlcy1wcm9kLWZyLWJ5LXByZXBhcmF0aW9uVGltZS1hc2MlMjIlMkMlMjJyZWNpcGVzLXByb2QtZnItYnktcmF0aW5nLWRlc2MlMjIlMkMlMjJyZWNpcGVzLXByb2QtZnItYnktdHJlbmQlMjIlMkMlMjJjb2xsZWN0aW9ucy1wcm9kLWZyJTIyJTJDJTIyY29sbGVjdGlvbnMtcHJvZC1mci1ieS1wdWJsaXNoZWRBdC1kZXNjJTIyJTJDJTIyY29sbGVjdGlvbnMtcHJvZC1mci1ieS10aXRsZS1hc2MlMjIlMkMlMjJlZGl0b3JpYWwtcHJvZC1mciUyMiUyQyUyMmVkaXRvcmlhbC1wcm9kLWZyLWJ5LXRpdGxlLWFzYyUyMiUyQyUyMnN1Z2dlc3Rpb25zLXJlY2lwZXMtcHJvZC1kZSUyMiUyQyUyMmNhdGVnb3J5LXN1Z2dlc3Rpb25zLXByb2QtZGUlMjIlMkMlMjJyZWNpcGVzLXByb2QtZGUlMjIlMkMlMjJyZWNpcGVzLXByb2QtZGUtYnktcHVibGlzaGVkQXQtZGVzYyUyMiUyQyUyMnJlY2lwZXMtcHJvZC1kZS1ieS10aXRsZS1hc2MlMjIlMkMlMjJyZWNpcGVzLXByb2QtZGUtYnktdG90YWxUaW1lLWFzYyUyMiUyQyUyMnJlY2lwZXMtcHJvZC1kZS1ieS1wcmVwYXJhdGlvblRpbWUtYXNjJTIyJTJDJTIycmVjaXBlcy1wcm9kLWRlLWJ5LXJhdGluZy1kZXNjJTIyJTJDJTIycmVjaXBlcy1wcm9kLWRlLWJ5LXRyZW5kJTIyJTJDJTIyY29sbGVjdGlvbnMtcHJvZC1kZSUyMiUyQyUyMmNvbGxlY3Rpb25zLXByb2QtZGUtYnktcHVibGlzaGVkQXQtZGVzYyUyMiUyQyUyMmNvbGxlY3Rpb25zLXByb2QtZGUtYnktdGl0bGUtYXNjJTIyJTJDJTIyZWRpdG9yaWFsLXByb2QtZGUlMjIlMkMlMjJlZGl0b3JpYWwtcHJvZC1kZS1ieS10aXRsZS1hc2MlMjIlMkMlMjJzdWdnZXN0aW9ucy1yZWNpcGVzLXByb2QlMjIlMkMlMjJjYXRlZ29yeS1zdWdnZXN0aW9ucy1wcm9kJTIyJTJDJTIycmVjaXBlcy1wcm9kJTIyJTJDJTIycmVjaXBlcy1wcm9kLWJ5LXB1Ymxpc2hlZEF0LWRlc2MlMjIlMkMlMjJyZWNpcGVzLXByb2QtYnktdGl0bGUtYXNjJTIyJTJDJTIycmVjaXBlcy1wcm9kLWJ5LXRvdGFsVGltZS1hc2MlMjIlMkMlMjJyZWNpcGVzLXByb2QtYnktcHJlcGFyYXRpb25UaW1lLWFzYyUyMiUyQyUyMnJlY2lwZXMtcHJvZC1ieS1yYXRpbmctZGVzYyUyMiUyQyUyMnJlY2lwZXMtcHJvZC1ieS10cmVuZCUyMiUyQyUyMmNvbGxlY3Rpb25zLXByb2QlMjIlMkMlMjJjb2xsZWN0aW9ucy1wcm9kLWJ5LXB1Ymxpc2hlZEF0LWRlc2MlMjIlMkMlMjJjb2xsZWN0aW9ucy1wcm9kLWJ5LXRpdGxlLWFzYyUyMiUyQyUyMmVkaXRvcmlhbC1wcm9kJTIyJTJDJTIyZWRpdG9yaWFsLXByb2QtYnktdGl0bGUtYXNjJTIyJTVE&x-algolia-application-id=3TA8NT85XJ"
+    def queryRecipes(self,searchPhrase):
+        headers = {
+            'Accept': '*/*',
+            'Accept-Language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Connection': 'keep-alive',
+            'DNT': '1',
+            'Origin': 'https://cookidoo.de',
+            'Referer': 'https://cookidoo.de/',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'cross-site',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+            'content-type': 'application/x-www-form-urlencoded',
+            'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+        }
 
-        queryWords = urllib.parse.quote(queryWords)
+        data = '{"requests":[{"query":"'+ searchPhrase + '","params":"page=0&hitsPerPage=20&facets=%5B%22tmversion%22%2C%22tags%22%5D&filters=(countries%3A%22de%22)%20AND%20(NOT%20accessories%3Acooking_station%20AND%20NOT%20accessories%3Ablade_cover%20AND%20NOT%20accessories%3Apeeler)&attributesToRetrieve=%5B%22id%22%2C%22title%22%2C%22rating%22%2C%22publishedAt%22%2C%22image%22%2C%22totalTime%22%5D&maxValuesPerFacet=5&attributesToHighlight=%5B%5D&clickAnalytics=true&analyticsTags=%5B%22touchpoint%3Aweb%22%2C%22market%3Ade%22%2C%22ui-lang%3Ade-DE%22%2C%22fun%3AmultiSearch%22%2C%22path%3A%2Fsearch%2Fde-DE%22%2C%22context%3Arecipes%22%2C%22component%3Anavigation%22%2C%22app%3Asearch-webapp%22%5D&ruleContexts=%5B%22lang_de-DE%22%2C%22cookidoo.de%22%2C%22web%22%2C%22market_de__lang_de-DE%22%5D&ignorePlurals=true&queryLanguages=%5B%22de%22%5D","indexName":"recipes-prod-de"}]}'
 
-        headers = CaseInsensitiveDict()
-        headers["Connection"] = "keep-alive"
-        headers["sec-ch-ua"] = "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"97\", \"Chromium\";v=\"97\""
-        headers["DNT"] = "1"
-        headers["sec-ch-ua-mobile"] = "?0"
-        headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36"
-        headers["sec-ch-ua-platform"] = "\"Windows\""
-        headers["content-type"] = "application/x-www-form-urlencoded"
-        headers["Accept"] = "*/*"
-        headers["Origin"] = "https://cookidoo.de"
-        headers["Sec-Fetch-Site"] = "cross-site"
-        headers["Sec-Fetch-Mode"] = "cors"
-        headers["Sec-Fetch-Dest"] = "empty"
-        headers["Referer"] = "https://cookidoo.de/"
-        headers["Accept-Language"] = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
-        data = '{"requests":[{"page":0,"query":"'+ queryWords+ '","params":"attributesToHighlight=%5B%22title%22%5D&attributesToRetrieve=%5B%22title%22%5D&highlightPreTag=%3Cspan%20class%3D%22core-autocomplete__search-phrase%22%3E&highlightPostTag=%3C%2Fspan%3E&hitsPerPage=10&filters=(country.value%3A%22de%22)%20AND%20(NOT%20additionalDevices%3Acooking_station)&ruleContexts=%5B%22lang_de-DE%22%2C%22cookidoo.de%22%2C%22web%22%2C%22market_de__lang_de-DE%22%5D&analyticsTags=%5B%22touchpoint%3Aweb%22%2C%22market%3Ade%22%2C%22ui-lang%3Ade-DE%22%5D&ignorePlurals=true&queryLanguages=%5B%22de%22%5D&page=0","enableRules":true,"indexName":"recipes-prod-de"},{"indexName":"suggestions-recipes-prod-de","page":0,"query":"' + queryWords + '","params":"attributesToHighlight=%5B%22query%22%5D&attributesToRetrieve=%5B%22query%22%5D&highlightPreTag=%3Cspan%20class%3D%22core-autocomplete__search-phrase%22%3E&highlightPostTag=%3C%2Fspan%3E&hitsPerPage=5&filters=(recipes-prod-de.facets.exact_matches.country.value.value%3A%22de%22)&ruleContexts=%5B%22lang_de-DE%22%2C%22cookidoo.de%22%2C%22web%22%2C%22market_de__lang_de-DE%22%5D&analyticsTags=%5B%22touchpoint%3Aweb%22%2C%22market%3Ade%22%2C%22ui-lang%3Ade-DE%22%5D&ignorePlurals=true&queryLanguages=%5B%22de%22%5D&page=0"},{"indexName":"category-suggestions-prod-de","page":0,"query":"' + queryWords + '","params":"filters=language%3Ade&attributesToRetrieve=%5B%22category%22%2C%22id%22%5D&ruleContexts=%5B%22lang_de-DE%22%2C%22cookidoo.de%22%2C%22web%22%2C%22market_de__lang_de-DE%22%5D&analyticsTags=%5B%22touchpoint%3Aweb%22%2C%22market%3Ade%22%2C%22ui-lang%3Ade-DE%22%5D&ignorePlurals=true&queryLanguages=%5B%22de%22%5D&page=0"}]}'
+        searchResponse = requests.post('https://' + self.appId + '-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.10.3)%3B%20Browser%20(lite)&x-algolia-api-key=' 
+						         + self.clientKey + '&x-algolia-application-id=3TA8NT85XJ', headers=headers, data=data)
 
-        resp = requests.post(url, headers=headers, data=data)
+        queryResultsJson = json.loads(searchResponse.text)
 
-        if not resp.ok or resp.content is None:
-            self.log(f'error running query for \'{queryWords}\'')
-            return None
-                
-        resultJson = json.loads(resp.content)
-        allHits = resultJson['results'][0]['hits']
+        queryResults = queryResultsJson['results']
 
-        recipeNamesAndIds = {}
+        hits = queryResults[0]['hits']
 
-        def filterFullhits(hit):
-            try:
-                matchLevel = hit['_highlightResult']['title']['matchLevel']
-                return matchLevel == 'full'
-            except KeyError:
-                return False
-
-        hits = list(filter(filterFullhits, allHits))
-
-        if len(hits) is 0:
-            hits = allHits
+        results =[]
 
         for hit in hits:
-            result = hit['_highlightResult']['title']['matchLevel']
-            recipeNamesAndIds[str(hit['objectID'])] = hit['title']
+            recipeId = hit['id']
+            name =  hit['title']
+            result = {
+                "name" : name,
+                "recipeId" : recipeId                    
+            }
 
-        return recipeNamesAndIds
+            results.append(result)
 
+        return results
 
     def get_ingredientStrings(self, url):
         self.log('crawling url: '+ url)

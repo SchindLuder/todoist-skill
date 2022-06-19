@@ -405,7 +405,7 @@ class TodoistSkill(MycroftSkill):
 
 		crawler = Crawler.Crawler(self.log.info)
 
-		recipeIdsAndNames = crawler.getNamesAndRecipeIdsFromQuery(recipeName)
+		results = crawler.queryRecipes(recipeName)
 		
 		numberOfMatches = len(recipeIdsAndNames)
 
@@ -423,8 +423,8 @@ class TodoistSkill(MycroftSkill):
 				index = 0
 				questionText = ''
 
-				for recipeId in recipeIdsAndNames:					
-					name = recipeIdsAndNames[recipeId]
+				for result in results:					
+					name = result['name']
 					questionText +=f'{str(index+1)} : {name}, '
 					index = index + 1
 
@@ -455,6 +455,7 @@ class TodoistSkill(MycroftSkill):
 
 		if recipeId is None:
 			self.speak_dialog('please.chose.valid.option')
+			return
 		
 		ingredients = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/' + recipeId)		
 

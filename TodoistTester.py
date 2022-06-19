@@ -5,14 +5,13 @@ from datetime import datetime as dt
 from datetime import timedelta
 import zahlwort2num as w2n
 import re
-
+import requests
 class log(object):
 	def info(self,message):
 		print(message)
 
 	def debug(self,message):
 		print('debug: ' + message)
-
 class selfMockup(object):
 	def checkTodoistConfiguration(self):
 		return True
@@ -30,6 +29,15 @@ class selfMockup(object):
 		print('ask_yesno: '+ question)
 
 crawler = Crawler(print)
+
+results = crawler.queryRecipes('pizza')
+
+for result in results:
+	url = 'https://cookidoo.de/recipes/recipe/de-DE/'+ result['recipeId']
+
+	print(crawler.get_ingredientStrings(url))
+
+exit()
 
 self = selfMockup()
 
