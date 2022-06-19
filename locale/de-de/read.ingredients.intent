@@ -1,3 +1,1 @@
-sag mir die zutaten für {recipeName} 
-lies mir die zutaten für {recipeName} vor
-Welche Zutaten brauche für {recipeName}
+(sag|sage|lies|nenn|nenne|verrate) mir die zutaten (für |von | ){recipeName}
