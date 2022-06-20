@@ -88,17 +88,13 @@ class Crawler():
 
         hits = queryResults[0]['hits']
 
-        results =[]
+        results ={}
 
-        for hit in hits:
+        for hit in hits:            
             recipeId = hit['id']
             name =  hit['title']
-            result = {
-                "name" : name,
-                "recipeId" : recipeId                    
-            }
 
-            results.append(result)
+            results[name] = recipeId            
 
         return results
 
