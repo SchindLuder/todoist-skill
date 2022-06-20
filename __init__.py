@@ -448,7 +448,7 @@ class TodoistSkill(MycroftSkill):
 
 				return getDesiredRecipeId(recipeIdsAndNames, retries + 1)
 
-			return list(recipeIdsAndNames.values())[index]
+			return list(recipeIdsAndNames.values())[index-1]
 
 		recipeId = getDesiredRecipeId(results, 0)
 
