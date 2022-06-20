@@ -489,8 +489,8 @@ class TodoistSkill(MycroftSkill):
 
 		readIngredientsInLoop(ingredients)
 
-	@intent_handler('test.intent')
-	def test_intent(self,message):		
+	@intent_handler('ingredient_read.intent')
+	def handle_ingredient_read(self,message):		
 		self.log.info(f'test.intent')
 		recipeName = message.data.get('query')
 		self.log.info(recipeName)
