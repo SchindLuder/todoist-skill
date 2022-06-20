@@ -448,7 +448,7 @@ class TodoistSkill(MycroftSkill):
 
 				return getDesiredRecipeId(recipeIdsAndNames, retries + 1)
 
-			return list(recipeIdsAndNames.keys())[index]
+			return list(recipeIdsAndNames.values())[index]
 
 		recipeId = getDesiredRecipeId(results, 0)
 
@@ -457,6 +457,8 @@ class TodoistSkill(MycroftSkill):
 			return
 		
 		ingredients = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/' + recipeId)		
+
+		self.log.info(ingredients)
 
 		self.speak('Ja für weiter, nein zum beenden')
 		time.sleep(3)
