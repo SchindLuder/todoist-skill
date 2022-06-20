@@ -492,7 +492,7 @@ class TodoistSkill(MycroftSkill):
 	@intent_handler('test.intent')
 	def test_intent(self,message):		
 		self.log.info(f'test.intent')
-		recipeName = message.data.get('recipeName')
+		recipeName = message.data.get('query')
 		self.log.info(recipeName)
 
 def create_skill():
