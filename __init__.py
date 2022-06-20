@@ -404,7 +404,7 @@ class TodoistSkill(MycroftSkill):
 
 		crawler = Crawler.Crawler(self.log.info)
 
-		results = crawler.queryRecipes(query)
+		recipeIdsAndNames = crawler.queryRecipes(query)
 		
 		numberOfMatches = len(recipeIdsAndNames)
 
