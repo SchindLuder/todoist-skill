@@ -423,7 +423,7 @@ class TodoistSkill(MycroftSkill):
 				questionText = ''
 
 				for result in recipeIdsAndNames:					
-					name = result['name']
+					name = result
 					questionText +=f'{str(index+1)} : {name}, '
 					index = index + 1
 

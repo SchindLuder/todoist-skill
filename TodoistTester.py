@@ -30,12 +30,46 @@ class selfMockup(object):
 
 crawler = Crawler(print)
 
-results = crawler.queryRecipes('pizza')
+results = crawler.queryRecipes('soljanka')
 
-for result in results:
-	url = 'https://cookidoo.de/recipes/recipe/de-DE/'+ result['recipeId']
 
-	print(crawler.get_ingredientStrings(url))
+def getDesiredRecipeId(recipeIdsAndNames,retries):
+	if len(recipeIdsAndNames) == 1:
+		return list(recipeIdsAndNames.keys())[0]						
+
+	def builtQuestionText(recipeIdsAndNames):
+		index = 0
+		questionText = ''
+
+		for result in recipeIdsAndNames:					
+			name = result
+			questionText +=f'{str(index+1)} : {name}, '
+			index = index + 1
+
+			if index > 3:
+				return questionText
+				
+		return questionText
+			
+	questionText = builtQuestionText(recipeIdsAndNames)
+
+	response = self.get_response('chose.recipe.index', {'question' : questionText})
+
+	index = None
+	try:
+		index = int(response)
+	except ValueError:
+		index = None
+						
+	if index is None or index < 0 or index > len(recipeIdsAndNames):
+		if retries > 3:
+			exit()
+
+			return getDesiredRecipeId(recipeIdsAndNames, retries + 1)
+
+		return list(recipeIdsAndNames.keys())[index]
+
+recipeId = getDesiredRecipeId(results, 0)
 
 exit()
 
