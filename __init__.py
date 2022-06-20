@@ -396,22 +396,22 @@ class TodoistSkill(MycroftSkill):
 		itemsForDay = self.todoist.getTasksOfDay(dueDateTime.strftime("%Y-%m-%d"))
 		self.readItemList(itemsForDay)
 
-	@intent_handler('read.ingredients.intent')
+	@intent_handler('test.intent')
 	def handle_read_ingredients(self,message):
-		self.log.info(f'data: {str(message.data)}')
+		self.log.info(f'read ingredients')
 
-		recipeName = str(message.data.get('recipeName')).split('für ')[-1]
+		query = message.data.get('query')
 		self.log.info(f'reading ingredients for {recipeName}')
 
 		crawler = Crawler.Crawler(self.log.info)
 
-		results = crawler.queryRecipes(recipeName)
+		results = crawler.queryRecipes(query)
 		
 		numberOfMatches = len(recipeIdsAndNames)
 
 		if numberOfMatches is 0:
 			self.speak_dialog('no.recipes.to.read.found', {
-					'recipeName' : recipeName
+					'recipeName' : query
 				})
 			return
 
