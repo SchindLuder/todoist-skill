@@ -396,7 +396,7 @@ class TodoistSkill(MycroftSkill):
 		itemsForDay = self.todoist.getTasksOfDay(dueDateTime.strftime("%Y-%m-%d"))
 		self.readItemList(itemsForDay)
 
-	@intent_handler('read.ingredients.intent')
+	@intent_handler('read.ingredients.loud.intent')
 	def handle_read_ingredients(self,message):
 		self.log.info(f'data: {str(message.data)}')
 
