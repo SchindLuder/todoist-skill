@@ -404,9 +404,9 @@ class TodoistSkill(MycroftSkill):
 
 		crawler = Crawler.Crawler(self.log.info)
 
-		recipeIdsAndNames = crawler.queryRecipes(query)
+		results = crawler.queryRecipes(query)
 		
-		numberOfMatches = len(recipeIdsAndNames)
+		numberOfMatches = len(results)
 
 		if numberOfMatches is 0:
 			self.speak_dialog('no.recipes.to.read.found', {
@@ -422,7 +422,7 @@ class TodoistSkill(MycroftSkill):
 				index = 0
 				questionText = ''
 
-				for result in results:					
+				for result in recipeIdsAndNames:					
 					name = result['name']
 					questionText +=f'{str(index+1)} : {name}, '
 					index = index + 1
@@ -450,7 +450,7 @@ class TodoistSkill(MycroftSkill):
 
 			return list(recipeIdsAndNames.keys())[index]
 
-		recipeId = getDesiredRecipeId(recipeIdsAndNames, 0)
+		recipeId = getDesiredRecipeId(results, 0)
 
 		if recipeId is None:
 			self.speak_dialog('please.chose.valid.option')
