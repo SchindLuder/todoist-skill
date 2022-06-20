@@ -487,7 +487,11 @@ class TodoistSkill(MycroftSkill):
 
 			self.speak('das war es')
 
-		readIngredientsInLoop(ingredients)		
+		readIngredientsInLoop(ingredients)
+
+	@intent_handler('test.intent')
+	def test_intent(self,message):
+		self.log.info(f'test.intent')
 
 def create_skill():
 	return TodoistSkill()
