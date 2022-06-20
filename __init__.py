@@ -397,11 +397,10 @@ class TodoistSkill(MycroftSkill):
 		self.readItemList(itemsForDay)
 
 	@intent_handler('test.intent')
-	def handle_read_ingredients(self,message):
-		self.log.info(f'read ingredients')
-
+	def test(self,message):		
+		self.log.info(f'test.intent')
 		query = message.data.get('query')
-		self.log.info(f'reading ingredients for {recipeName}')
+		self.log.info(query)
 
 		crawler = Crawler.Crawler(self.log.info)
 
@@ -488,12 +487,6 @@ class TodoistSkill(MycroftSkill):
 			self.speak('das war es')
 
 		readIngredientsInLoop(ingredients)
-
-	@intent_handler('ingredient_read.intent')
-	def handle_ingredient_read(self,message):		
-		self.log.info(f'test.intent')
-		recipeName = message.data.get('query')
-		self.log.info(recipeName)
 
 def create_skill():
 	return TodoistSkill()
