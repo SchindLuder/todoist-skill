@@ -28,6 +28,35 @@ class selfMockup(object):
 	def ask_yesno(self,question):
 		print('ask_yesno: '+ question)
 
+
+itemNames = ['1','2','3','4', '5']
+
+def readItemList(self, itemNames, itemsInARow):
+	numberOfItems = len(itemNames)
+
+	for i, item in enumerate(itemNames):
+		item = (str(item)).split(',')[0]
+			
+		if (i == (numberOfItems -1)) & (numberOfItems != 1):
+			self.speak('und ' + item)
+			break
+				
+		if numberOfItems is 1:
+			self.speak('nur ' + item)			
+			break
+			
+		self.speak(item)
+
+		if (i != 0) and (i % itemsInARow) == 0:
+			answer = self.ask_yesno('Soll ich weiterlesen?')
+
+			if answer != 'yes':
+				break
+
+self = selfMockup()
+
+readItemList(self, itemNames, 2)
+
 crawler = Crawler(print)
 
 results = crawler.queryRecipes('soljanka')
@@ -73,7 +102,7 @@ recipeId = getDesiredRecipeId(results, 0)
 
 exit()
 
-self = selfMockup()
+
 
 def handle_sync_shoppinglist(self,message):
 	if not self.checkTodoistConfiguration():

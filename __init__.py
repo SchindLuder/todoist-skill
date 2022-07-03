@@ -114,7 +114,7 @@ class TodoistSkill(MycroftSkill):
 				'listItem' : str(listItem)
 			})		
 	
-	def readItemList(self, itemNames):
+	def readItemList(self, itemNames, itemsInARow):
 		numberOfItems = len(itemNames)
 
 		for i, item in enumerate(itemNames):
@@ -129,6 +129,12 @@ class TodoistSkill(MycroftSkill):
 				break
 			
 			self.speak(item)
+
+			if (i != 0) and (i % itemsInARow) == 0:
+				answer = self.ask_yesno('Soll ich weiterlesen?')
+
+				if answer != 'yes':
+					break
 
 	@intent_handler('shoppinglist.read.intent')
 	def handle_read_shoppinglist(self, message):
@@ -154,7 +160,7 @@ class TodoistSkill(MycroftSkill):
 		
 		self.log.info(str(numberOfItems) + ' open items found')
 		
-		self.readItemList(itemNames)
+		self.readItemList(itemNames,4)
 
 	@intent_handler('shoppinglist.sync.intent')
 	def handle_sync_shoppinglist(self,message):
@@ -306,7 +312,7 @@ class TodoistSkill(MycroftSkill):
 
 					#self.todoist.moveItemToSection('Sortierung_Einkaufsliste', unsortedItem, str(answer))
 
-		unsortedItemDialog(unsortedItems)		
+		#unsortedItemDialog(unsortedItems)		
 
 		def deleteEmptySections():
 			projectId = self.todoist.getProjectIdByName('Einkaufsliste')
@@ -394,7 +400,7 @@ class TodoistSkill(MycroftSkill):
 		dueDateTime = date.today() + addedDays
 
 		itemsForDay = self.todoist.getTasksOfDay(dueDateTime.strftime("%Y-%m-%d"))
-		self.readItemList(itemsForDay)
+		self.readItemList(itemsForDay,4)
 
 	@intent_handler('test.intent')
 	def test(self,message):		
