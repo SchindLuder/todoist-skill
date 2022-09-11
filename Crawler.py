@@ -13,6 +13,8 @@ class Crawler():
         self.initClientKeyAndAppId()
 
     def initClientKeyAndAppId(self):
+        return;
+
         cookies = {    'tmde-lang': 'de-DE'}
         headers = {
             'authority': 'cookidoo.de',

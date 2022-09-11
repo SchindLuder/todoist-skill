@@ -55,12 +55,11 @@ def readItemList(self, itemNames, itemsInARow):
 
 self = selfMockup()
 
-readItemList(self, itemNames, 2)
+#readItemList(self, itemNames, 2)
 
-crawler = Crawler(print)
+#crawler = Crawler(print)
 
-results = crawler.queryRecipes('soljanka')
-
+#results = crawler.queryRecipes('soljanka')
 
 def getDesiredRecipeId(recipeIdsAndNames,retries):
 	if len(recipeIdsAndNames) == 1:
@@ -98,10 +97,7 @@ def getDesiredRecipeId(recipeIdsAndNames,retries):
 
 		return list(recipeIdsAndNames.keys())[index]
 
-recipeId = getDesiredRecipeId(results, 0)
-
-exit()
-
+#recipeId = getDesiredRecipeId(results, 0)
 
 
 def handle_sync_shoppinglist(self,message):
@@ -282,6 +278,7 @@ with open('TodoistToken', 'r') as file:
 self.todoist = TodoistWrapper(token, print)
 self.todoist.api.sync()
 
+openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
 handle_sync_shoppinglist(self, '')
 
 exit()
