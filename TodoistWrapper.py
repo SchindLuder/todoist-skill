@@ -126,7 +126,7 @@ class TodoistWrapper():
 		fullNameToName = {}
 		nameToFullName = {}
 		
-		self.log(f'going trough {len(shoppingItems)} shopping items')
+		self.log(f'going through {len(shoppingItems)} shopping items')
 
 		units =['g', 'kg', 'ml', 'l']
 		adjectives = self.getConfigElements('Mycroft-Settings', 'Adjektive')
@@ -279,6 +279,8 @@ class TodoistWrapper():
 		projectId = self.getProjectIdByName(projectName)
 
 		sectionId = None
+
+		self.api.sync()
 		allsection = self.api.sections.all()
 		
 		for section in allsection:
@@ -288,14 +290,15 @@ class TodoistWrapper():
 			if section['name'] != sectionName:
 				continue
 
-			sectionId = section['id']	
+			sectionId = section['id']				
 
 			if not isinstance(sectionId, int):
 				section.delete()
+				self.api.commit()
 		
 
 		if sectionId is None:
-			self.log(f'could not find section \'{sectionName}\'. Going to create it')
+			self.log(f'could not find section \'{sectionName}\' in project \'{projectName}\'. Going to create it')
 			section = self.api.sections.add(sectionName, project_id = projectId)
 			self.api.commit()
 			sectionId = section['id']
