@@ -6,7 +6,9 @@ from datetime import datetime as dt
 class TodoistWrapper():
 	def __init__(self, token, loggingMethod):
 		self.api = todoist.TodoistAPI(token)
-		self.api.sync()
+		#reset state to clean up any failed actions or zombie items
+		self.api.reset_state()
+		self.api.sync()		
 		self.log = loggingMethod
 		
 
