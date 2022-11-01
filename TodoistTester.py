@@ -57,9 +57,9 @@ self = selfMockup()
 
 #readItemList(self, itemNames, 2)
 
-#crawler = Crawler(print)
+crawler = Crawler(print)
 
-#results = crawler.queryRecipes('soljanka')
+results = crawler.queryRecipes('soljanka')
 
 def getDesiredRecipeId(recipeIdsAndNames,retries):
 	if len(recipeIdsAndNames) == 1:
@@ -97,8 +97,9 @@ def getDesiredRecipeId(recipeIdsAndNames,retries):
 
 		return list(recipeIdsAndNames.keys())[index]
 
-#recipeId = getDesiredRecipeId(results, 0)
+recipeId = getDesiredRecipeId(results, 0)
 
+exit()
 
 def handle_sync_shoppinglist(self,message):
 	if not self.checkTodoistConfiguration():
