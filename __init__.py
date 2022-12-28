@@ -167,13 +167,11 @@ class TodoistSkill(MycroftSkill):
 		if not self.checkTodoistConfiguration():
 			return
 
-		self.todoist.api.sync()
-
 		def getUrlsToCrawl(todoist, projectName = 'Einkaufsliste', clearUrls = True ):
 			urls = []
 			recipes = self.todoist.getOpenItemsOfProject(projectName)
 			for recipe in recipes:
-				fullString = str(recipe.data['content'])
+				fullString = str(recipe.content)
 				if not 'https' in fullString: 
 					continue
 
@@ -183,14 +181,11 @@ class TodoistSkill(MycroftSkill):
 				urls.append(url)
 
 				if clearUrls:
-					recipe.delete()
-
-			if clearUrls:
-				self.todoist.api.commit()
+					self.todoist.api.delete_task(task_id=recipe.id)
 
 			return urls
 
-		crawler = Crawler.Crawler(self.log.info)
+		crawler = Crawler(self.log.info)
 
 		allIngredientStrings =[]
 		allIngredientDescriptions = []
@@ -267,19 +262,12 @@ class TodoistSkill(MycroftSkill):
 			allIngredientDescriptions.extend(ingredientDescriptions)
 
 		index = 0
-
 		if len(allIngredientStrings) > 0:
 			self.speak_dialog('ingredients.add', {'numberOfIngredients' : str(len(allIngredientStrings))})
 		
 		for ingredient in allIngredientStrings:
 			index += 1
 			self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False,allIngredientDescriptions[index-1])
-
-			if index % 15 == 0:
-				self.todoist.api.commit()
-
-		if index % 15 != 0:
-			self.todoist.api.commit()
 
 		unsortedItems = self.todoist.sortShoppingList()
 		self.speak('Einkaufsliste wurde sortiert')
@@ -312,24 +300,21 @@ class TodoistSkill(MycroftSkill):
 
 					#self.todoist.moveItemToSection('Sortierung_Einkaufsliste', unsortedItem, str(answer))
 
-		#unsortedItemDialog(unsortedItems)		
+		unsortedItemDialog(unsortedItems)		
 
 		def deleteEmptySections():
-			projectId = self.todoist.getProjectIdByName('Einkaufsliste')
-
-			sections = list(filter(lambda x: x['project_id'] == projectId, self.todoist.api.sections.all()))
+			sections = self.todoist.getSectionsOfProject('Einkaufsliste')
 
 			openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
 
 			for section in sections:
 				# try to get first item in section 
-				itemInSection = next((openItem for openItem in openItems if openItem['section_id'] == section['id']), None)
+				itemInSection = next((openItem for openItem in openItems if openItem.section_id == section.id), None)
 
 				# delete section if its empty
 				if itemInSection is None:
-					section.delete()
+					self.todoist.api.delete_section(section_id = section.id)
 
-			self.todoist.api.commit()
 
 		deleteEmptySections()
 
@@ -348,14 +333,13 @@ class TodoistSkill(MycroftSkill):
 		projectId = self.todoist.getProjectIdByName('Einkaufsliste')
 
 		def onlyEinkaufsliste(item):
-			if item['project_id'] != projectId:
+			if item.project_id != projectId:
 			   return False
 
-			try:		   
+			try:
 				# do not delete finished tasks neither URLs of recipes
-				if item['checked'] == 1 or 'http' in str(item['content']):
+				if item.checked == 1 or 'http' in str(item.content):
 				   return False 
-
 			except:
 				self.log.debug('got exception while checking items of shopping list')
 				return False

@@ -111,15 +111,15 @@ class Crawler():
 
         queryResultsJson = json.loads(searchResponse.text)
 
-        queryResults = queryResultsJson['results']
+        queryResults = queryResultsJson.results
 
-        hits = queryResults[0]['hits']
+        hits = queryResults[0].hits
 
         results ={}
 
         for hit in hits:            
-            recipeId = hit['id']
-            name =  hit['title']
+            recipeId = hit.id
+            name =  hit.title
 
             results[name] = recipeId            
 
@@ -139,7 +139,7 @@ class Crawler():
                 break
 
             for ingredientNode in ingredientRootNode.children:
-                if not hasattr(ingredientNode, 'id') or not 'ingredient-' in ingredientNode['id']:
+                if not hasattr(ingredientNode, 'id'):# or not 'ingredient-' in ingredientNode.id:
                     continue
 
                 ingredientStringPure = str(ingredientNode.text)

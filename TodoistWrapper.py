@@ -1,40 +1,55 @@
-import todoist
+#import todoist
+from todoist_api_python.api import TodoistAPI
 import re
 from datetime import date
 from datetime import datetime as dt
 
 class TodoistWrapper():
 	def __init__(self, token, loggingMethod):
-		self.api = todoist.TodoistAPI(token)
+		#self.api = todoist.TodoistAPI(token)
+		self.api = TodoistAPI(token)
 		#reset state to clean up any failed actions or zombie items
-		self.api.reset_state()
-		self.api.sync()		
+		#self.api.reset_state()
+		#self.api.sync()		
 		self.log = loggingMethod
+		a = 1
 		
 
-	def getProjectIdByName(self, name):
-		project = next(x for x in self.api.state['projects'] if x['name'] == name)
-		return project['id']
+	def getProjectIdByName(self, name):		
+		#project = next(x for x in self.api.state.projects if x.name == name)
+		project = next(x for x in self.api.get_projects() if x.name == name)
+		return project.id
+
+	def getSectionsOfProject(self, projectName):
+		projectId = self.getProjectIdByName(projectName)
+		sections = self.api.get_sections()		
+		try:
+			return list(filter(lambda x: (x.project_id == projectId), sections))
+		except:
+			return list()
+			
+
+
 
 	def getSectionIdByName(self,sectionName):
-		unsortedSectionId = next(x for x in self.api['sections'] if x['name'] == 'Unsortiert')['id']
+		unsortedSectionId = next(x for x in self.api.sections if x.name == 'Unsortiert').id
 		return unsortedSectionId
 
 	def getOpenItemsOfProject(self, projectName):
 		project_id = self.getProjectIdByName(projectName)
 		self.log('getting open items of project:' + projectName + ' with id:' + str(project_id))
-
-		projectItems = self.api['items']
+		
+		projectItems = self.api.get_tasks()
 
 		openItems = list([])
 
 		for element in projectItems:
 
 			try:
-				if element['project_id'] != project_id:
+				if element.project_id != project_id:
 					continue
 
-				if element['checked'] == 1:
+				if element.is_completed == True:
 					continue
 			except:
 				continue
@@ -45,19 +60,16 @@ class TodoistWrapper():
 
 	def addItemToProject(self, projectName, itemName, sectionId = None, commit = False, descriptionString = ''):
 		project_id = self.getProjectIdByName(projectName)
-		self.api.items.add(itemName, project_id=project_id,section_id=sectionId, description=descriptionString )
-		if commit:
-			self.api.commit()
+		return self.api.add_task(itemName, project_id=project_id,section_id=sectionId, description=descriptionString )
 
 	def getContentListFromItems(self, itemCollection):    
-		return list(map(lambda x: str(x['content']).lower(), itemCollection))	
+		return list(map(lambda x: str(x.content).lower(), itemCollection))	
 
 	def getItemOrderIds(self, orderProjectName = 'Sortierung_Einkaufsliste'):
-		project_id = self.getProjectIdByName(orderProjectName)
-		sectionsForSorting = list(filter(lambda x: (x['project_id'] == project_id), self.api['sections']))
+		sectionsForSorting = self.getSectionsOfProject(orderProjectName)
 				
 		def getSectionOrder(element):
-			return element['section_order']
+			return element.order
 
 		sectionsForSorting.sort(key = getSectionOrder)
 
@@ -65,18 +77,18 @@ class TodoistWrapper():
 		globalCounter = 0
 		itemOrderIds = {}
 		for sortSection in sectionsForSorting:
-			sectionId = sortSection['id']          
+			sectionId = sortSection.id
 		
 			#sort them by their childorder within the section
-			itemsInSection = list(filter(lambda x: x['section_id'] == sectionId, sortItems))
+			itemsInSection = list(filter(lambda x: x.section_id == sectionId, sortItems))
 
 			def sortByChildOrder(element):
-				return element['child_order']
+				return element.order
 		
 			itemsInSection.sort(key = sortByChildOrder)
 		
 			for itemInSection in itemsInSection:
-				content = str(itemInSection['content'])
+				content = str(itemInSection.content)
 
 				for singleItemInSection in content.split(','):
 					#item already added
@@ -110,13 +122,14 @@ class TodoistWrapper():
 
 		sectionId = self.getOrAddSection(projectName, sectionName)
 		openProjectItems = self.getOpenItemsOfProject(projectName)  
-		itemsInSection = list(filter(lambda x: x['is_deleted'] != 1 and x['section_id'] == sectionId, openProjectItems))
+		itemsInSection = list(filter(lambda x: x.section_id == sectionId, openProjectItems))
 		
 		for item in itemsInSection:
-			content = str(item.data['content'])
+			content = str(item.content)
 			configElements.extend(content.split(','))
 
 		return configElements
+
 
 	def sortShoppingList(self, listName = 'Einkaufsliste'):
 		shoppingItems = self.getOpenItemsOfProject(listName)
@@ -156,7 +169,7 @@ class TodoistWrapper():
 		regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\.]{0,10}\s{0,1}' + unitRegex + adjectivesRegex + amountRegex +  adjectivesRegex +'\s{0,1}(?P<ingredient>[\D\-]{,})'		
 
 		for shoppingItem in shoppingItems:			
-			fullName =shoppingItem['content']
+			fullName =shoppingItem.content
 
 			#ignore recipe urls
 			if 'http' in fullName:
@@ -174,7 +187,7 @@ class TodoistWrapper():
 			#remove trailing descriptions
 			name = re.sub(r'( (und |etwas |mehr |zum |nach ){1,}([\D]{1,}){0,1})$', '', name).strip()
 
-			#
+			#shorten - range indications
 			name = name.replace(' - ','-')
 						
 			match = re.search(regex, name)
@@ -228,17 +241,33 @@ class TodoistWrapper():
 
 		sortItems = self.getOpenItemsOfProject('Sortierung_Einkaufsliste')
 
+
+
 		def tryGetSectionForItem(itemOfSortList):
-			sortItem = next((x for x in sortItems if (x['content'] == orderName or (orderName+',') in x['content'] or orderName in x['content'])), None)						
-			sectionName = self.api.sections.get_by_id(sortItem['section_id'])['name']
-			sectionId = self.getOrAddSection('Einkaufsliste', str(sectionName))
-			return sectionId
+			sortItem = next((x for x in sortItems if (x.content == orderName or (orderName+',') in x.content or orderName in x.content)), None)									
+
+			#best match: item completely matches
+			sortItem = next((x for x in sortItems if x.content == orderName),None)
+				   
+			#2nd best: item plus description matches
+			if sortItem is None:
+				sortItem = next((x for x in sortItems if (orderName+',') in x.content),None)
+
+			#3rd best: item matches anywhere
+			if sortItem is None:
+				sortItem = next((x for x in sortItems if orderName in x.content),None)
+				
+			#get section name from sorting list
+			sectionName = self.api.get_section(sortItem.section_id).name
+
+			#create found section from sorting in the target list
+			return self.getOrAddSection('Einkaufsliste', str(sectionName))			
 
 		for orderNumber in sorted_keys:			
 			orderName = str(childOrders[orderNumber])
 						
 			def doesItemBelongToType(shoppingListItem):
-				itemName = str(shoppingListItem['content'])
+				itemName = str(shoppingListItem.content)
 				if itemName == orderName:
 					return True
 
@@ -253,24 +282,44 @@ class TodoistWrapper():
 			itemsOfThisType = list(filter(doesItemBelongToType, shoppingItems))
 
 			for itemOfThisType in itemsOfThisType:				
-				itemOfThisType.reorder(child_order = int(offset))
-
+				itemOfThisType.order =  int(offset)															
 				sectionId = tryGetSectionForItem(orderName)
-				itemOfThisType.move(section_id = sectionId)
+				
+				#workaround due to https://github.com/Doist/todoist-api-python/issues/8
+				# create new item with all the properties and delete the old one
 
-				self.log(str(offset) + ' : ' + itemOfThisType['content'])
+				self.api.add_task(
+					content=itemOfThisType.content,
+					description=itemOfThisType.description,
+					labels=itemOfThisType.labels,
+					priority=itemOfThisType.priority,
+					due=itemOfThisType.due,
+					assignee_id=itemOfThisType.assignee_id,
+					project_id=itemOfThisType.project_id,
+					section_id=sectionId,
+					parent_id=itemOfThisType.parent_id,
+					order = int(offset)
+				)
 
-				if offset % 15 == 0:
-					self.log('commiting 15 changes')
-					self.api.commit();
+				deleteResult = self.api.delete_task(itemOfThisType.id)
+               
+				#itemOfThisType.move(section_id = sectionId)
+
+				self.log(str(offset) + ' : ' + itemOfThisType.content)
+
+				#hopefully not necessary anymore with new API
+				#if offset % 15 == 0:
+					#self.log('commiting 15 changes')
+					#self.api.commit();
 
 				offset += 1
 
-		if offset % 15 != 0:
-			self.log('commiting remaining changes')
-			self.api.commit();
+		#hopefully not necessary anymore with new API
+		#if offset % 15 != 0:
+			#self.log('commiting remaining changes')
+			#self.api.commit();
 		
-		self.api.commit();
+		#self.api.commit();
 
 		return unsortedItems
 
@@ -280,42 +329,41 @@ class TodoistWrapper():
 
 		sectionId = None
 
-		self.api.sync()
-		allsection = self.api.sections.all()
+		
+		allsection = self.api.get_sections()
 		
 		for section in allsection:
-			if section['project_id'] != projectId:
+			if section.project_id != projectId:
 				continue
 
-			if section['name'] != sectionName:
+			if section.name != sectionName:
 				continue
 
-			sectionId = section['id']				
-
-			if not isinstance(sectionId, int):
-				section.delete()
-				self.api.commit()
+			sectionId = section.id
+			
+			#previously handled zombie sections but as of now all sectionIds are strings
+			#if not isinstance(sectionId, int):
+				#section.delete()
+				#self.api.commit()
 		
 
 		if sectionId is None:
 			self.log(f'could not find section \'{sectionName}\' in project \'{projectName}\'. Going to create it')
-			section = self.api.sections.add(sectionName, project_id = projectId)
-			self.api.commit()
-			sectionId = section['id']
+			section = self.api.add_section(sectionName,projectId)			
+			sectionId = section.id
 				
 		self.log(f'Section \'{sectionName}\' in project \'{projectName}\' has id \'{sectionId}\'')
 
 		return sectionId	
 
 	def deleteAllSectionsFromProject(self, projectName = 'Einkaufsliste'):
-		self.api.sync()
 		projectId = self.getProjectIdByName(projectName)		
-		allsection = self.api.sections.all()
+		allsection = self.api.get_sections()
 
 		hasSections = False
 
 		for section in allsection:
-			if section['project_id'] != projectId:
+			if section.project_id != projectId:
 				continue
 
 			hasSections = True
@@ -339,19 +387,19 @@ class TodoistWrapper():
 
 		def filterOpenItemsWithDue(item):
 			try:
-				return item['is_deleted'] == 0 and item['checked'] == 0 and item['due'] != None
+				return item.is_deleted == 0 and item.checked == 0 and item.due != None
 			except KeyError:
 				self.log(f'item does not have property \'checked\': {item}')
 				return False
 
-		openItemsWithDue = list(filter(filterOpenItemsWithDue, self.api['items']))
+		openItemsWithDue = list(filter(filterOpenItemsWithDue, self.api.items))
 
 		for openItem in openItemsWithDue:
-			openItemDueDate = openItem['due']['date']
+			openItemDueDate = openItem.due.date
 			# date = Due date in the format of YYYY-MM-DD (RFC 3339). 
 			itemDueDate = dt.strptime(openItemDueDate, "%Y-%m-%d")
 			
 			if itemDueDate < dateObject or openItemDueDate == dateString:
-				itemsForDay.append(openItem['content'])			
+				itemsForDay.append(openItem.content)			
 
 		return itemsForDay		

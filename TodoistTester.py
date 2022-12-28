@@ -28,6 +28,9 @@ class selfMockup(object):
 	def ask_yesno(self,question):
 		print('ask_yesno: '+ question)
 
+	def set_api(self,api):
+		self.api = api
+
 
 itemNames = ['1','2','3','4', '5']
 
@@ -59,7 +62,7 @@ self = selfMockup()
 
 crawler = Crawler(print)
 
-results = crawler.queryRecipes('soljanka')
+#results = crawler.queryRecipes('soljanka')
 
 def getDesiredRecipeId(recipeIdsAndNames,retries):
 	if len(recipeIdsAndNames) == 1:
@@ -97,21 +100,17 @@ def getDesiredRecipeId(recipeIdsAndNames,retries):
 
 		return list(recipeIdsAndNames.keys())[index]
 
-recipeId = getDesiredRecipeId(results, 0)
-
-exit()
+#recipeId = getDesiredRecipeId(results, 0)
 
 def handle_sync_shoppinglist(self,message):
 	if not self.checkTodoistConfiguration():
 		return
 
-	self.todoist.api.sync()
-
 	def getUrlsToCrawl(todoist, projectName = 'Einkaufsliste', clearUrls = True ):
 		urls = []
 		recipes = self.todoist.getOpenItemsOfProject(projectName)
 		for recipe in recipes:
-			fullString = str(recipe.data['content'])
+			fullString = str(recipe.content)
 			if not 'https' in fullString: 
 				continue
 
@@ -121,10 +120,7 @@ def handle_sync_shoppinglist(self,message):
 			urls.append(url)
 
 			if clearUrls:
-				recipe.delete()
-
-		if clearUrls:
-			self.todoist.api.commit()
+				self.todoist.api.delete_task(task_id=recipe.id)
 
 		return urls
 
@@ -205,19 +201,12 @@ def handle_sync_shoppinglist(self,message):
 		allIngredientDescriptions.extend(ingredientDescriptions)
 
 	index = 0
-
 	if len(allIngredientStrings) > 0:
 		self.speak_dialog('ingredients.add', {'numberOfIngredients' : str(len(allIngredientStrings))})
 		
 	for ingredient in allIngredientStrings:
 		index += 1
 		self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False,allIngredientDescriptions[index-1])
-
-		if index % 15 == 0:
-			self.todoist.api.commit()
-
-	if index % 15 != 0:
-		self.todoist.api.commit()
 
 	unsortedItems = self.todoist.sortShoppingList()
 	self.speak('Einkaufsliste wurde sortiert')
@@ -253,21 +242,18 @@ def handle_sync_shoppinglist(self,message):
 	unsortedItemDialog(unsortedItems)		
 
 	def deleteEmptySections():
-		projectId = self.todoist.getProjectIdByName('Einkaufsliste')
-
-		sections = list(filter(lambda x: x['project_id'] == projectId, self.todoist.api.sections.all()))
+		sections = self.todoist.getSectionsOfProject('Einkaufsliste')
 
 		openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
 
 		for section in sections:
 			# try to get first item in section 
-			itemInSection = next((openItem for openItem in openItems if openItem['section_id'] == section['id']), None)
+			itemInSection = next((openItem for openItem in openItems if openItem.section_id == section.id), None)
 
 			# delete section if its empty
 			if itemInSection is None:
-				section.delete()
+				self.todoist.api.delete_section(section_id = section.id)
 
-		self.todoist.api.commit()
 
 	deleteEmptySections()
 
@@ -277,10 +263,11 @@ with open('TodoistToken', 'r') as file:
     token = file.read().replace('\n', '')
 
 self.todoist = TodoistWrapper(token, print)
-self.todoist.api.sync()
+self.set_api(self.todoist)
 
 openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
 handle_sync_shoppinglist(self, '')
+
 
 exit()
 
