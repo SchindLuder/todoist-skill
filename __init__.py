@@ -7,7 +7,8 @@ import threading
 import zahlwort2num as w2n
 from math import ceil
 from . import TodoistWrapper
-from . import Crawler
+#from . import Crawler
+import Crawler
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
 from datetime import date
 from datetime import datetime as dt
