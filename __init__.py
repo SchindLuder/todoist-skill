@@ -7,8 +7,7 @@ import threading
 import zahlwort2num as w2n
 from math import ceil
 from . import TodoistWrapper
-#from . import Crawler
-import Crawler
+from . import Crawler
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
 from datetime import date
 from datetime import datetime as dt
@@ -187,7 +186,7 @@ class TodoistSkill(MycroftSkill):
 
 			return urls
 
-		crawler = Crawler(self.log.info)
+		crawler = Crawler.Crawler(self.log.info)
 
 		allIngredientStrings =[]
 		allIngredientDescriptions = []
