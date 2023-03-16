@@ -24,6 +24,8 @@ class TodoistSkill(MycroftSkill):
 			if os.path.exists(configPath):
 				with open(configPath) as f: 
 					token = f.read()
+					token = token. rstrip('\r')
+					token = token. rstrip('\n')
 					self.log.info('got todoist token from local config file')
 					return str(token)
 			
