@@ -33,6 +33,7 @@ class TodoistSkill(MycroftSkill):
 
 		if not token:
 			self.log.info('No token set in settings. Please set a token to access todoist')
+			self.todoist = None
 			return
 		
 		self.todoist = TodoistWrapper.TodoistWrapper(token, self.log.info)
