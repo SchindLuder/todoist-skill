@@ -260,14 +260,12 @@ def handle_sync_shoppinglist(self,message):
 	self.log.debug(str(allIngredientStrings))
 
 with open('TodoistToken', 'r') as file:
-    token = file.read().replace('\n', '')
+	token = file.read().replace('\n', '')
 
 self.todoist = TodoistWrapper(token, print)
 self.set_api(self.todoist)
 
-openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
-handle_sync_shoppinglist(self, '')
-
+self.todoist.sortLabeledShoppingList('Einkaufsliste')
 
 exit()
 
