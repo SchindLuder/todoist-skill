@@ -24,6 +24,8 @@ class TodoistSkill(MycroftSkill):
 			if os.path.exists(configPath):
 				with open(configPath) as f: 
 					token = f.read()
+					token = token. rstrip('\r')
+					token = token. rstrip('\n')
 					self.log.info('got todoist token from local config file')
 					return str(token)
 			
@@ -33,6 +35,7 @@ class TodoistSkill(MycroftSkill):
 
 		if not token:
 			self.log.info('No token set in settings. Please set a token to access todoist')
+			self.todoist = None
 			return
 		
 		self.todoist = TodoistWrapper.TodoistWrapper(token, self.log.info)
@@ -185,7 +188,7 @@ class TodoistSkill(MycroftSkill):
 
 			return urls
 
-		crawler = Crawler(self.log.info)
+		crawler = Crawler.Crawler(self.log.info)
 
 		allIngredientStrings =[]
 		allIngredientDescriptions = []
