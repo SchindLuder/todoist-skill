@@ -6,272 +6,250 @@ from datetime import timedelta
 import zahlwort2num as w2n
 import re
 import requests
+
+
 class log(object):
-	def info(self,message):
-		print(message)
+    def info(self, message):
+        print(message)
 
-	def debug(self,message):
-		print('debug: ' + message)
+    def debug(self, message):
+        print('debug: ' + message)
+
+
 class selfMockup(object):
-	def checkTodoistConfiguration(self):
-		return True
+    def checkTodoistConfiguration(self):
+        return True
 
-	def __init__(self): 
-		self.log = log()
+    def __init__(self):
+        self.log = log()
 
-	def speak_dialog(self, dialogName, values):
-		print('dialog: ' + dialogName)
+    def speak_dialog(self, dialogName, values):
+        print('dialog: ' + dialogName)
 
-	def speak(self,message):
-		print('speak: ' + message)
+    def speak(self, message):
+        print('speak: ' + message)
 
-	def ask_yesno(self,question):
-		print('ask_yesno: '+ question)
+    def ask_yesno(self, question):
+        print('ask_yesno: ' + question)
 
-	def set_api(self,api):
-		self.api = api
+    def set_api(self, api):
+        self.api = api
 
 
-itemNames = ['1','2','3','4', '5']
+itemNames = ['1', '2', '3', '4', '5']
+
 
 def readItemList(self, itemNames, itemsInARow):
-	numberOfItems = len(itemNames)
+    numberOfItems = len(itemNames)
 
-	for i, item in enumerate(itemNames):
-		item = (str(item)).split(',')[0]
-			
-		if (i == (numberOfItems -1)) & (numberOfItems != 1):
-			self.speak('und ' + item)
-			break
-				
-		if numberOfItems is 1:
-			self.speak('nur ' + item)			
-			break
-			
-		self.speak(item)
+    for i, item in enumerate(itemNames):
+        item = (str(item)).split(',')[0]
 
-		if (i != 0) and (i % itemsInARow) == 0:
-			answer = self.ask_yesno('Soll ich weiterlesen?')
+        if (i == (numberOfItems - 1)) & (numberOfItems != 1):
+            self.speak('und ' + item)
+            break
 
-			if answer != 'yes':
-				break
+        if numberOfItems is 1:
+            self.speak('nur ' + item)
+            break
+
+        self.speak(item)
+
+        if (i != 0) and (i % itemsInARow) == 0:
+            answer = self.ask_yesno('Soll ich weiterlesen?')
+
+            if answer != 'yes':
+                break
+
 
 self = selfMockup()
 
-#readItemList(self, itemNames, 2)
+# readItemList(self, itemNames, 2)
 
 crawler = Crawler(print)
 
-#results = crawler.queryRecipes('soljanka')
 
-def getDesiredRecipeId(recipeIdsAndNames,retries):
-	if len(recipeIdsAndNames) == 1:
-		return list(recipeIdsAndNames.keys())[0]						
+# results = crawler.queryRecipes('soljanka')
 
-	def builtQuestionText(recipeIdsAndNames):
-		index = 0
-		questionText = ''
+def getDesiredRecipeId(recipeIdsAndNames, retries):
+    if len(recipeIdsAndNames) == 1:
+        return list(recipeIdsAndNames.keys())[0]
 
-		for result in recipeIdsAndNames:					
-			name = result
-			questionText +=f'{str(index+1)} : {name}, '
-			index = index + 1
+    def builtQuestionText(recipeIdsAndNames):
+        index = 0
+        questionText = ''
 
-			if index > 3:
-				return questionText
-				
-		return questionText
-			
-	questionText = builtQuestionText(recipeIdsAndNames)
+        for result in recipeIdsAndNames:
+            name = result
+            questionText += f'{str(index + 1)} : {name}, '
+            index = index + 1
 
-	response = self.get_response('chose.recipe.index', {'question' : questionText})
+            if index > 3:
+                return questionText
 
-	index = None
-	try:
-		index = int(response)
-	except ValueError:
-		index = None
-						
-	if index is None or index < 0 or index > len(recipeIdsAndNames):
-		if retries > 3:
-			exit()
+        return questionText
 
-			return getDesiredRecipeId(recipeIdsAndNames, retries + 1)
+    questionText = builtQuestionText(recipeIdsAndNames)
 
-		return list(recipeIdsAndNames.keys())[index]
+    response = self.get_response('chose.recipe.index', {'question': questionText})
 
-#recipeId = getDesiredRecipeId(results, 0)
+    index = None
+    try:
+        index = int(response)
+    except ValueError:
+        index = None
 
-def handle_sync_shoppinglist(self,message):
-	if not self.checkTodoistConfiguration():
-		return
+    if index is None or index < 0 or index > len(recipeIdsAndNames):
+        if retries > 3:
+            exit()
 
-	def getUrlsToCrawl(todoist, projectName = 'Einkaufsliste', clearUrls = True ):
-		urls = []
-		recipes = self.todoist.getOpenItemsOfProject(projectName)
-		for recipe in recipes:
-			fullString = str(recipe.content)
-			if not 'https' in fullString: 
-				continue
+            return getDesiredRecipeId(recipeIdsAndNames, retries + 1)
 
-			url = 'https' + fullString.split('https')[-1]
-			# remove trailing ) if url was added manually and not via share in Cookidoo
-			url = url.strip(')')
-			urls.append(url)
-
-			if clearUrls:
-				self.todoist.api.delete_task(task_id=recipe.id)
-
-		return urls
-
-	crawler = Crawler(self.log.info)
-
-	allIngredientStrings =[]
-	allIngredientDescriptions = []
-
-	urls = getUrlsToCrawl(self.todoist, 'Einkaufsliste', True)
-
-	numberOfUrls = len(urls)
-
-	if numberOfUrls > 0:
-		self.speak_dialog('project.urls.found', {'numberOfUrls' : str(numberOfUrls)})
-
-	for url in urls:
-		match = re.search(' x(?P<factor>[0-9]{1,2},[0-9]{1})$', url)
-
-		factor = None
-			
-		if match is not None:
-			url = url.split(' x')[0]
-			url = url.strip(')')
-			factor = match.group('factor')
-				
-			if ',' in factor:
-				factor = factor.replace(',','.')
+        return list(recipeIdsAndNames.keys())[index]
 
 
-		ingredientStrings = crawler.get_ingredientStrings(url)
-		ingredientDescriptions = [None] * len(ingredientStrings)
+# recipeId = getDesiredRecipeId(results, 0)
 
-		if factor is not None:
-			factorFloat = float(factor.replace(',','.'))
+def handle_sync_shoppinglist(self, message):
+    if not self.checkTodoistConfiguration():
+        return
 
-			for index, ingredientString in enumerate(ingredientStrings):
-				ingredientDescriptions[index] = factor + ' x '+ ingredientString				
-			
-				amountRegex = r'^(?P<amount>[0-9½¼¾\- ]{0,10}) '
-				match = re.search(amountRegex, ingredientString)
+    def getUrlsToCrawl(todoist, projectName='Einkaufsliste', clearUrls=True):
+        urls = []
+        recipes = self.todoist.getOpenItemsOfProject(projectName)
+        for recipe in recipes:
+            fullString = str(recipe.content)
+            if not 'https' in fullString:
+                continue
 
-				if match:
-					originalAmount = match.group('amount')
-					amount = originalAmount.replace('½', '0.5').replace('¼', '0.25').replace('¾', '0.75')
-				
-					#2 - 3 units ingredient
-					if '-' in amount:
-						amount = amount.split('-')[-1]
-					#2 1/2 units something
-					elif ' ' in amount:
-						try:
-							amountSplit = amount.split(' ')
-							firstNumber = float(amountSplit[0])
-							secondNumber = float(amountSplit[1])
-							amount = firstNumber + secondNumber
-						except ValueError:
-							error = 'could not convert '+amount
-							self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
-						
-					try:
-						amountFloat = float(str(amount))
+            url = 'https' + fullString.split('https')[-1]
+            # remove trailing ) if url was added manually and not via share in Cookidoo
+            url = url.strip(')')
+            urls.append(url)
 
-						totalFloat = factorFloat * amountFloat
-				
-						ingredientStrings[index] = ingredientString.replace(originalAmount, str(totalFloat))
+            if clearUrls:
+                self.todoist.api.delete_task(task_id=recipe.id)
 
-						continue
+        return urls
 
-					except ValueError as e:
-						f = e
-						self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
-						self.log.debug(e)
+    crawler = Crawler(self.log.info)
 
-			# cant calculate the result of the factor. just use the full string
-			ingredientStrings[index] = ingredientDescriptions[index]
-								
-		allIngredientStrings.extend(ingredientStrings)
-		allIngredientDescriptions.extend(ingredientDescriptions)
+    allIngredientStrings = []
+    allIngredientDescriptions = []
 
-	index = 0
-	if len(allIngredientStrings) > 0:
-		self.speak_dialog('ingredients.add', {'numberOfIngredients' : str(len(allIngredientStrings))})
-		
-	for ingredient in allIngredientStrings:
-		index += 1
-		self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False,allIngredientDescriptions[index-1])
+    urls = getUrlsToCrawl(self.todoist, 'Einkaufsliste', True)
 
-	unsortedItems = self.todoist.sortShoppingList()
-	self.speak('Einkaufsliste wurde sortiert')
+    numberOfUrls = len(urls)
 
-	def unsortedItemDialog(unsortedItems):
-		if len(unsortedItems) == 0:
-			return
-			
-		answer = self.ask_yesno('Es gibt Einträge, die ich nicht sortieren konnte. Möchtest du mir jetzt die Kategorien dafür sagen?')
+    if numberOfUrls > 0:
+        self.speak_dialog('project.urls.found', {'numberOfUrls': str(numberOfUrls)})
 
-		if answer != 'yes':
-			return
+    for url in urls:
+        match = re.search(' x(?P<factor>[0-9]{1,2},[0-9]{1})$', url)
 
-		for unsortedItem in unsortedItems:
-			retry = 0
-			while retry < 3:
-				answer = self.get_response('ask.for.category', {
-							'itemName' : unsortedItem
-						})
+        factor = None
 
-				if answer is None or answer == '' or answer == ' ':
-					retry +=1
-					continue
+        if match is not None:
+            url = url.split(' x')[0]
+            url = url.strip(')')
+            factor = match.group('factor')
 
-				category = answer.replace(answer[0], answer[0].upper())
+            if ',' in factor:
+                factor = factor.replace(',', '.')
 
-				sectionId = self.todoist.getOrAddSection('Sortierung_Einkaufsliste', str(answer))
+        ingredientStrings = crawler.get_ingredientStrings(url)
+        ingredientDescriptions = [None] * len(ingredientStrings)
 
-				break
+        if factor is not None:
+            factorFloat = float(factor.replace(',', '.'))
 
-				#self.todoist.moveItemToSection('Sortierung_Einkaufsliste', unsortedItem, str(answer))
+            for index, ingredientString in enumerate(ingredientStrings):
+                ingredientDescriptions[index] = factor + ' x ' + ingredientString
 
-	unsortedItemDialog(unsortedItems)		
+                amountRegex = r'^(?P<amount>[0-9½¼¾\- ]{0,10}) '
+                match = re.search(amountRegex, ingredientString)
 
-	def deleteEmptySections():
-		sections = self.todoist.getSectionsOfProject('Einkaufsliste')
+                if match:
+                    originalAmount = match.group('amount')
+                    amount = originalAmount.replace('½', '0.5').replace('¼', '0.25').replace('¾', '0.75')
 
-		openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+                    # 2 - 3 units ingredient
+                    if '-' in amount:
+                        amount = amount.split('-')[-1]
+                    # 2 1/2 units something
+                    elif ' ' in amount:
+                        try:
+                            amountSplit = amount.split(' ')
+                            firstNumber = float(amountSplit[0])
+                            secondNumber = float(amountSplit[1])
+                            amount = firstNumber + secondNumber
+                        except ValueError:
+                            error = 'could not convert ' + amount
+                            self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
 
-		for section in sections:
-			# try to get first item in section 
-			itemInSection = next((openItem for openItem in openItems if openItem.section_id == section.id), None)
+                    try:
+                        amountFloat = float(str(amount))
 
-			# delete section if its empty
-			if itemInSection is None:
-				self.todoist.api.delete_section(section_id = section.id)
+                        totalFloat = factorFloat * amountFloat
 
+                        ingredientStrings[index] = ingredientString.replace(originalAmount, str(totalFloat))
 
-	deleteEmptySections()
+                        continue
 
-	self.log.debug(str(allIngredientStrings))
+                    except ValueError as e:
+                        f = e
+                        self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
+                        self.log.debug(e)
+
+            # cant calculate the result of the factor. just use the full string
+            ingredientStrings[index] = ingredientDescriptions[index]
+
+        allIngredientStrings.extend(ingredientStrings)
+        allIngredientDescriptions.extend(ingredientDescriptions)
+
+    index = 0
+    if len(allIngredientStrings) > 0:
+        self.speak_dialog('ingredients.add', {'numberOfIngredients': str(len(allIngredientStrings))})
+
+    for ingredient in allIngredientStrings:
+        index += 1
+        self.todoist.addItemToProject('Einkaufsliste', ingredient, None, allIngredientDescriptions[index - 1])
+
+    unsorted_items = self.todoist.sort_labeled_shoppinglist()
+    self.speak('Einkaufsliste wurde sortiert')
+
+    def deleteEmptySections():
+        sections = self.todoist.getSectionsOfProject('Einkaufsliste')
+
+        openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+
+        for section in sections:
+            # try to get first item in section
+            itemInSection = next((openItem for openItem in openItems if openItem.section_id == section.id), None)
+
+            # delete section if its empty
+            if itemInSection is None:
+                self.todoist.api.delete_section(section_id=section.id)
+
+    deleteEmptySections()
+
+    self.log.debug(str(allIngredientStrings))
+
 
 with open('TodoistToken', 'r') as file:
-	token = file.read().replace('\n', '')
+    token = file.read().replace('\n', '')
 
 self.todoist = TodoistWrapper(token, print)
 self.set_api(self.todoist)
 
-self.todoist.sortLabeledShoppingList('Einkaufsliste')
+handle_sync_shoppinglist(self,'')
+#self.todoist.sortLabeledShoppingList('Einkaufsliste')
 
 exit()
 
 allIngredientsStrings = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/r51860')
 
 for ingredient in allIngredientsStrings:
-    self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False,ingredient)      
-    
+    self.todoist.addItemToProject('Einkaufsliste', ingredient, None, ingredient)
+
 self.todoist.api.commit()

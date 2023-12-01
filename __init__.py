@@ -107,13 +107,13 @@ class TodoistSkill(MycroftSkill):
 		
 		if listItem in itemNames:
 			self.speak_dialog('project.contains', {			
-				'projectName': 'Einkaufsliste', 
+				'project_name': 'Einkaufsliste',
 				'listItem' : str(listItem)
 			})
 			return
 			
 		self.speak_dialog('project.not.contains', {			
-				'projectName': 'Einkaufsliste', 
+				'project_name': 'Einkaufsliste',
 				'listItem' : str(listItem)
 			})		
 	
@@ -151,14 +151,14 @@ class TodoistSkill(MycroftSkill):
 		#self.log.info(str(openItems))
 
 		if len(openItems) is 0:			
-			self.speak_dialog('project.empty', {'projectName': 'Einkaufsliste'})
+			self.speak_dialog('project.empty', {'project_name': 'Einkaufsliste'})
 			return
 
 		itemNames = self.todoist.getContentListFromItems(openItems)
 		numberOfItems = len(itemNames)		
 		
 		if numberOfItems is 0:
-			self.speak_dialog('project.git empty', {'projectName': 'Einkaufsliste'})
+			self.speak_dialog('project.git empty', {'project_name': 'Einkaufsliste'})
 			return		
 		
 		self.log.info(str(numberOfItems) + ' open items found')
@@ -363,7 +363,7 @@ class TodoistSkill(MycroftSkill):
 			if counter % 10 == 0:
 				self.todoist.api.commit()
 
-		self.todoist.deleteAllSectionsFromProject('Einkaufsliste')
+		self.todoist.delete_all_sections_of_project('Einkaufsliste')
 
 		self.speak_dialog('shoppinglist.deleted')
 		self.todoist.api.commit()
