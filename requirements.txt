@@ -1,4 +1,5 @@
-todoist-python
+todoist-api-python
+#todoist-python
 bs4
 datetime
 zahlwort2num
