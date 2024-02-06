@@ -7,7 +7,6 @@ import re
 from datetime import date
 from datetime import datetime as dt
 
-
 class TodoistWrapper():
     def __init__(self, token, loggingMethod):
         self.api = TodoistAPI(token)

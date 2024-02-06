@@ -328,30 +328,3 @@ for ingredient in allIngredientsStrings:
     self.todoist.addItemToProject('Einkaufsliste', ingredient, None, ingredient)
 
 self.todoist.api.commit()
-
-'''
-any_item_id0 = open_items[0].id
-any_item_id1 = open_items[1].id
-
-headers = {
-    'Authorization': 'Bearer b4e9b236f1bbb5cd596ab5613b3fbf9f5a66a8a0',
-    'Content-Type': 'application/x-www-form-urlencoded',
-}
-
-## hier muss die Ganze Liste übergeben werden
-Data = """commands=[
-    {
-        "type": "item_reorder",
-        "uuid": "bf0855a2-0138-4b76-b895-88cad8db9edc",
-        "args": {
-            "items": [
-                {"id": "id0", "child_order": 5},
-                {"id": "id1", "child_order": 4}
-            ]
-        }
-    }]"""
-
-Data = Data.replace('id0', any_item_id0)
-Data = Data.replace('id1', any_item_id1)
-
-print(Data)'''
