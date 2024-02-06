@@ -5,8 +5,9 @@ from datetime import datetime as dt
 from datetime import timedelta
 import zahlwort2num as w2n
 import re
+import uuid
 import requests
-
+import json
 
 class log(object):
     def info(self, message):
@@ -116,7 +117,7 @@ def handle_sync_shoppinglist(self, message):
 
     def getUrlsToCrawl(todoist, projectName='Einkaufsliste', clearUrls=True):
         urls = []
-        recipes = self.todoist.getOpenItemsOfProject(projectName)
+        recipes = self.todoist.get_open_items_of_project(projectName)
         for recipe in recipes:
             fullString = str(recipe.content)
             if not 'https' in fullString:
@@ -219,9 +220,9 @@ def handle_sync_shoppinglist(self, message):
     self.speak('Einkaufsliste wurde sortiert')
 
     def deleteEmptySections():
-        sections = self.todoist.getSectionsOfProject('Einkaufsliste')
+        sections = self.todoist.get_sections_of_project('Einkaufsliste')
 
-        openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+        openItems = self.todoist.get_open_items_of_project('Einkaufsliste')
 
         for section in sections:
             # try to get first item in section
@@ -242,8 +243,82 @@ with open('TodoistToken', 'r') as file:
 self.todoist = TodoistWrapper(token, print)
 self.set_api(self.todoist)
 
-handle_sync_shoppinglist(self,'')
-#self.todoist.sortLabeledShoppingList('Einkaufsliste')
+open_items = self.todoist.get_open_items_of_project('Einkaufsliste')
+order_manual = [1, 3, 2, 240, 239]
+
+
+class Args:
+    def __init__(self):
+        self.items = []
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
+
+
+def build_reorder_args(list_of_tasks):
+    reorder_args = Args()
+
+    max_order = len(list_of_tasks)
+    current_order = max_order
+
+    def get_order(object):
+        return object.order
+
+    list_of_tasks.sort(key=get_order)
+
+    for task in list_of_tasks:
+        id_order_object = {'id': task.id, 'child_order': current_order}  # task.order}
+        print(f'{task.content} from {task.order} to {current_order}')
+        reorder_args.items.append(id_order_object)
+        current_order = current_order - 1
+
+    return reorder_args
+
+
+args = build_reorder_args(open_items)
+headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}  # x-www-form-urlencoded'}
+
+
+class Data:
+    def __init__(self, commands):
+        self.commands = [commands]
+
+    def toJson(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
+        # return json.dumps(self, default=lambda o: o.__dict__,sort_keys=True, indent=4)
+
+
+data = Data(
+    {
+        'type': 'item_reorder',
+        'uuid': str(uuid.uuid4()),
+        'args': args
+    }
+
+)
+
+response = requests.post('https://api.todoist.com/sync/v9/sync', headers=headers, data=data.toJson())
+
+success = str(response.content).__contains__('sync_status')
+print(f'success: {success}')
+exit()
+'''
+$ curl https://api.todoist.com/sync/v9/sync \
+    -H "Authorization: Bearer 0123456789abcdef0123456789abcdef01234567" \
+    -d commands='[
+    {
+        "type": "item_move",
+        "uuid": "318d16a7-0c88-46e0-9eb5-cde6c72477c8",
+        "args": {
+            "id": "2995104339", 
+            "parent_id": "2995104340"
+        }
+    }]'
+
+'''
+
+handle_sync_shoppinglist(self, '')
+# self.todoist.sortLabeledShoppingList('Einkaufsliste')
 
 exit()
 
@@ -253,3 +328,30 @@ for ingredient in allIngredientsStrings:
     self.todoist.addItemToProject('Einkaufsliste', ingredient, None, ingredient)
 
 self.todoist.api.commit()
+
+'''
+any_item_id0 = open_items[0].id
+any_item_id1 = open_items[1].id
+
+headers = {
+    'Authorization': 'Bearer b4e9b236f1bbb5cd596ab5613b3fbf9f5a66a8a0',
+    'Content-Type': 'application/x-www-form-urlencoded',
+}
+
+## hier muss die Ganze Liste übergeben werden
+Data = """commands=[
+    {
+        "type": "item_reorder",
+        "uuid": "bf0855a2-0138-4b76-b895-88cad8db9edc",
+        "args": {
+            "items": [
+                {"id": "id0", "child_order": 5},
+                {"id": "id1", "child_order": 4}
+            ]
+        }
+    }]"""
+
+Data = Data.replace('id0', any_item_id0)
+Data = Data.replace('id1', any_item_id1)
+
+print(Data)'''

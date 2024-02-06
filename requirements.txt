@@ -1,6 +1,10 @@
 todoist-api-python
 #todoist-python
-bs4
-datetime
-zahlwort2num
-#uuid4
+bs4~=0.0.1
+datetime~=5.2
+zahlwort2num~=0.4.2
+uuid4
+requests
+
+requests~=2.31.0
+beautifulsoup4~=4.12.2

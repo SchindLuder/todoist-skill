@@ -1,4 +1,7 @@
 # import todoist
+import time
+from typing import Optional, Any
+
 from todoist_api_python.api import TodoistAPI
 import re
 from datetime import date
@@ -7,53 +10,80 @@ from datetime import datetime as dt
 
 class TodoistWrapper():
     def __init__(self, token, loggingMethod):
-        # self.api = todoist.TodoistAPI(token)
         self.api = TodoistAPI(token)
-        # reset state to clean up any failed actions or zombie items
-        # self.api.reset_state()
-        # self.api.sync()
         self.log = loggingMethod
-        a = 1
+        self.projects = None
+        self.tasks = None
+        self.labels = None
+        self.sections = None
 
-    def getProjectIdByName(self, name):
+    def clear_caches(self):
+        self.projects = None
+        self.tasks = None
+        self.labels = None
+        self.sections = None
+
+    def get_projects(self):
+        if self.projects is None:
+            self.projects = self.api.get_projects()
+
+        return self.projects
+
+    def get_sections(self):
+        if self.sections is None:
+            self.sections = self.api.get_sections()
+
+        return self.sections
+
+    def get_tasks(self):
+        if self.tasks is None:
+            self.tasks = self.api.get_tasks()
+
+        return self.tasks
+
+    def get_project_id_by_name(self, name):
         # project = next(x for x in self.api.state.projects if x.name == name)
-        project = next(x for x in self.api.get_projects() if x.name == name)
+        project = next(x for x in self.get_projects() if x.name == name)
         return project.id
 
-    def getSectionsOfProject(self, projectName):
-        projectId = self.getProjectIdByName(projectName)
-        sections = self.api.get_sections()
+    def get_sections_of_project(self, projectName):
+        project_id = self.get_project_id_by_name(projectName)
+        sections = self.get_sections()
         try:
-            return list(filter(lambda x: (x.project_id == projectId), sections))
+            return list(filter(lambda x: (x.project_id == project_id), sections))
         except:
             return list()
 
-    def getSectionIdByName(self, sectionName):
-        sectionId = next(x for x in self.api.get_sections() if x.name == sectionName).id
-        return sectionId
+    def get_section_id_by_name(self, section_name):
+        section_id = next(x for x in self.get_sections() if x.name == section_name).id
+        return section_id
 
-    def getOpenItemsOfProject(self, projectName):
-        project_id = self.getProjectIdByName(projectName)
-        self.log('getting open items of project:' + projectName + ' with id:' + str(project_id))
+    def get_open_items_of_project(self, project_name):
+        project_id = self.get_project_id_by_name(project_name)
+        self.log('getting open items of project:' + project_name + ' with id:' + str(project_id))
 
-        return self.api.get_tasks(project_id=project_id)
+        def filter_project_id(item):
+            return item.project_id == project_id
+
+        result = list(filter(filter_project_id, self.get_tasks()))
+        return result  # self.api.get_tasks(project_id=project_id)
 
     def addItemToProject(self, project_name: str, itemName: str, sectionId=None, descriptionString=''):
-        project_id = self.getProjectIdByName(project_name)
+        project_id = self.get_project_id_by_name(project_name)
         return self.api.add_task(itemName, project_id=project_id, section_id=sectionId, description=descriptionString)
 
     def getContentListFromItems(self, itemCollection):
         return list(map(lambda x: str(x.content).lower(), itemCollection))
 
     def getItemOrderIds(self, orderProjectName='Sortierung_Einkaufsliste'):
-        sectionsForSorting = self.getSectionsOfProject(orderProjectName)
+        sectionsForSorting = self.get_sections_of_project(orderProjectName)
 
         def getSectionOrder(element):
             return element.order
 
         sectionsForSorting.sort(key=getSectionOrder)
 
-        sortItems = self.getOpenItemsOfProject('Sortierung_Einkaufsliste')
+        sortItems = self.get_open_items_of_project('Sortierung_Einkaufsliste')
         globalCounter = 0
         itemOrderIds = {}
         for sortSection in sectionsForSorting:
@@ -138,24 +168,20 @@ class TodoistWrapper():
         self.contentToLabel = dict()
 
         for key in labelEntriesDict:
-            contentsSplit = labelEntriesDict[key]
+            contents_split = labelEntriesDict[key]
 
-            for content in contentsSplit.split(','):
+            for content in contents_split.split(','):
                 if content not in self.contentToLabel:
                     self.contentToLabel.update({content: key})
 
-    def __getLabelForContent(self, content):
+    def get_label_name_for_content(self, content) -> Optional[str]:
         if content not in self.contentToLabel:
             return None
 
-        labelName = self.contentToLabel[content]
-        labels = self.api.get_labels()
-        label = next((x for x in labels if x.name == labelName), None)
-
-        return label
+        return self.contentToLabel[content]
 
     def getItemOrderIdsFromLabels(self, orderProjectName='Sortierung_Einkaufsliste'):
-        sortingEntries = self.getOpenItemsOfProject(orderProjectName)
+        sortingEntries = self.get_open_items_of_project(orderProjectName)
         labels = self.api.get_labels()
 
         labelEntriesDict = self.__getSortingEntriesPerLabel(sortingEntries)
@@ -198,8 +224,8 @@ class TodoistWrapper():
     def get_config_elements(self, project_name: str, section_name: str):
         config_elements = []
 
-        section_id = self.getOrAddSection(project_name, section_name)
-        open_project_items = self.getOpenItemsOfProject(project_name)
+        section_id = self.get_or_add_section(project_name, section_name)
+        open_project_items = self.get_open_items_of_project(project_name)
         items_in_section = list(filter(lambda x: x.section_id == section_id, open_project_items))
 
         for item in items_in_section:
@@ -234,7 +260,7 @@ class TodoistWrapper():
         return regex
 
     def sort_labeled_shoppinglist(self, list_name='Einkaufsliste'):
-        shopping_items = self.getOpenItemsOfProject(list_name)
+        shopping_items = self.get_open_items_of_project(list_name)
         item_order_ids = self.getItemOrderIdsFromLabels()
 
         # item_order_ids ['Wassser' :0, 'Brot':1]
@@ -296,7 +322,7 @@ class TodoistWrapper():
 
         if len(unsorted_items) > 0:
             # save unsorted (unknown) items so that an order can be configured
-            unsorted_section_id = self.getOrAddSection('Sortierung_Einkaufsliste', 'Unsortiert')
+            unsorted_section_id = self.get_or_add_section('Sortierung_Einkaufsliste', 'Unsortiert')
             known_unsorted_items = self.getItemsOfSection('Unsortiert', 'Sortierung_Einkaufliste')
             for unsortedItem in unsorted_items:
                 if next((x for x in known_unsorted_items if x.content == unsortedItem), None) is not None:
@@ -311,6 +337,7 @@ class TodoistWrapper():
                 self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem, unsorted_section_id, description)
 
         self.log('ordering items')
+        order = 1
 
         for name in item_order_ids:
             if name not in name_to_full_name_list:
@@ -321,10 +348,26 @@ class TodoistWrapper():
             for full_name in full_name_list:
                 shopping_item = next(x for x in shopping_items if x.content == full_name)
                 shopping_items.remove(shopping_item)
-                label = self.__getLabelForContent(name)
-                labels = [label.name]
+                label_name = self.get_label_name_for_content(name)
+                start = time.time()
 
-                self.api.add_task(
+                '''
+                # = project
+                / = section
+                @ = label
+                + = assignee
+                parent id is missing 
+                '''
+
+                self.api.update_task(shopping_item.id, order = order)
+                order = order+1
+                continue
+                result = self.api.quick_add_task(f'{shopping_item.content} #Einkaufsliste @{label_name}')
+
+                if shopping_item.description is not '':
+                    self.api.update_task(result.task.id, description=shopping_item.description)
+
+                '''self.api.add_task(
                     content=shopping_item.content,
                     # order=orderInProject,
                     description=shopping_item.description,
@@ -335,48 +378,48 @@ class TodoistWrapper():
                     project_id=shopping_item.project_id,
                     section_id=shopping_item.section_id,
                     parent_id=shopping_item.parent_id
-                )
+                )'''
 
-                self.log(f'delete {shopping_item.content}')
+                self.log(f'add: {time.time() - start} seconds')
 
+                start = time.time()
                 try:
-                    self.api.delete_task(shopping_item.id)
+                    self.api.close_task(shopping_item.id)
                 except:
                     self.log(f'Could not delete {shopping_item.content}')
+
+                self.log(f'delete: {time.time() - start} seconds')
         return unsorted_items
 
-    def getOrAddSection(self, projectName, sectionName):
-        projectId = self.getProjectIdByName(projectName)
+    def get_or_add_section(self, project_name, section_name):
+        project_id = self.get_project_id_by_name(project_name)
 
-        sectionId = None
+        section_id = None
 
-        allsection = self.api.get_sections()
+        sections = self.get_sections()
 
-        for section in allsection:
-            if section.project_id != projectId:
+        for section in sections:
+            if section.project_id != project_id:
                 continue
 
-            if section.name != sectionName:
+            if section.name != section_name:
                 continue
 
-            sectionId = section.id
+            section_id = section.id
 
-        # previously handled zombie sections but as of now all sectionIds are strings
-        # if not isinstance(sectionId, int):
-        # section.delete()
-        # self.api.commit()
+        if section_id is None:
+            self.log(f'could not find section \'{section_name}\' in project \'{project_name}\'. Going to create it')
+            section = self.api.add_section(section_name, project_id)
+            section_id = section.id
+            #clear cache to get all updated sections on next call
+            self.sections = None
 
-        if sectionId is None:
-            self.log(f'could not find section \'{sectionName}\' in project \'{projectName}\'. Going to create it')
-            section = self.api.add_section(sectionName, projectId)
-            sectionId = section.id
+        self.log(f'Section \'{section_name}\' in project \'{project_name}\' has id \'{section_id}\'')
 
-        self.log(f'Section \'{sectionName}\' in project \'{projectName}\' has id \'{sectionId}\'')
-
-        return sectionId
+        return section_id
 
     def delete_all_sections_of_project(self, project_name):
-        project_id = self.getProjectIdByName(project_name)
+        project_id = self.get_project_id_by_name(project_name)
         sections = self.api.get_sections()
 
         for section in sections:
@@ -417,5 +460,5 @@ class TodoistWrapper():
         return itemsForDay
 
     def getItemsOfSection(self, sectionname, projectname=None):
-        sectionid = self.getSectionIdByName(sectionname)
+        sectionid = self.get_section_id_by_name(sectionname)
         return self.api.get_tasks(section_id=sectionid)

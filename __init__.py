@@ -53,9 +53,9 @@ class TodoistSkill(MycroftSkill):
 			return
 
 		self.log.info('add shopping list item')
-		self.log.info(str(message.data))
+		self.log.info(str(message.Data))
 		
-		listItem = message.data.get('listitem')
+		listItem = message.Data.get('listitem')
 		
 		if listItem is None:			
 			self.speak('ich hab den gewünschten Eintrag nicht verstanden')
@@ -95,14 +95,14 @@ class TodoistSkill(MycroftSkill):
 		self.todoist.api.sync()					
 		self.log.info('does shopping list contain')						
 		
-		self.log.info(str(message.data))
+		self.log.info(str(message.Data))
 		
-		listItem = message.data.get('listitem')
+		listItem = message.Data.get('listitem')
 		if listItem is None:			
 			self.speak('ich hab den gesuchten Eintrag nicht verstanden')
 			return
 		
-		openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+		openItems = self.todoist.get_open_items_of_project('Einkaufsliste')
 		itemNames = self.todoist.getContentListFromItems(openItems)
 		
 		if listItem in itemNames:
@@ -146,7 +146,7 @@ class TodoistSkill(MycroftSkill):
 
 		self.todoist.api.sync()			
 		self.log.info('reading shopping list')		
-		openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+		openItems = self.todoist.get_open_items_of_project('Einkaufsliste')
 
 		#self.log.info(str(openItems))
 
@@ -172,7 +172,7 @@ class TodoistSkill(MycroftSkill):
 
 		def getUrlsToCrawl(todoist, projectName = 'Einkaufsliste', clearUrls = True ):
 			urls = []
-			recipes = self.todoist.getOpenItemsOfProject(projectName)
+			recipes = self.todoist.get_open_items_of_project(projectName)
 			for recipe in recipes:
 				fullString = str(recipe.content)
 				if not 'https' in fullString: 
@@ -297,7 +297,7 @@ class TodoistSkill(MycroftSkill):
 
 					category = answer.replace(answer[0], answer[0].upper())
 
-					sectionId = self.todoist.getOrAddSection('Sortierung_Einkaufsliste', str(answer))
+					sectionId = self.todoist.get_or_add_section('Sortierung_Einkaufsliste', str(answer))
 
 					break
 
@@ -306,9 +306,9 @@ class TodoistSkill(MycroftSkill):
 		unsortedItemDialog(unsortedItems)		
 
 		def deleteEmptySections():
-			sections = self.todoist.getSectionsOfProject('Einkaufsliste')
+			sections = self.todoist.get_sections_of_project('Einkaufsliste')
 
-			openItems = self.todoist.getOpenItemsOfProject('Einkaufsliste')
+			openItems = self.todoist.get_open_items_of_project('Einkaufsliste')
 
 			for section in sections:
 				# try to get first item in section 
@@ -333,7 +333,7 @@ class TodoistSkill(MycroftSkill):
 		if response is None or response != 'yes':
 			self.speak_dialog('could.not.understand')
 
-		projectId = self.todoist.getProjectIdByName('Einkaufsliste')
+		projectId = self.todoist.get_project_id_by_name('Einkaufsliste')
 
 		def onlyEinkaufsliste(item):
 			if item.project_id != projectId:
@@ -370,7 +370,7 @@ class TodoistSkill(MycroftSkill):
 
 	@intent_handler('read.due.items.intent')
 	def handle_read_due_items_intent(self, message):
-		dueDate = message.data.get('duedate')
+		dueDate = message.Data.get('duedate')
 		self.log.info(f'read due items for dueDate:\'{dueDate}\'')
 				
 		dueDateTime = date.today()
@@ -392,7 +392,7 @@ class TodoistSkill(MycroftSkill):
 	@intent_handler('test.intent')
 	def test(self,message):		
 		self.log.info(f'test.intent')
-		query = message.data.get('query')
+		query = message.Data.get('query')
 		self.log.info(query)
 
 		crawler = Crawler.Crawler(self.log.info)
