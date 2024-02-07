@@ -50,7 +50,7 @@ def readItemList(self, itemNames, itemsInARow):
             self.speak('und ' + item)
             break
 
-        if numberOfItems is 1:
+        if numberOfItems == 1:
             self.speak('nur ' + item)
             break
 
@@ -244,8 +244,6 @@ self.todoist = TodoistWrapper(token, print)
 self.set_api(self.todoist)
 
 open_items = self.todoist.get_open_items_of_project('Einkaufsliste')
-order_manual = [1, 3, 2, 240, 239]
-
 
 class Args:
     def __init__(self):
@@ -261,12 +259,17 @@ def build_reorder_args(list_of_tasks):
     max_order = len(list_of_tasks)
     current_order = max_order
 
-    def get_order(object):
-        return object.order
+    def get_order(task_object):
+        return task_object.order
 
     list_of_tasks.sort(key=get_order)
-
+    counter = 0
     for task in list_of_tasks:
+        counter = counter +1
+
+        #if counter % 2:
+            #continue
+
         id_order_object = {'id': task.id, 'child_order': current_order}  # task.order}
         print(f'{task.content} from {task.order} to {current_order}')
         reorder_args.items.append(id_order_object)
@@ -283,7 +286,7 @@ class Data:
     def __init__(self, commands):
         self.commands = [commands]
 
-    def toJson(self):
+    def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__)
         # return json.dumps(self, default=lambda o: o.__dict__,sort_keys=True, indent=4)
 
@@ -296,35 +299,14 @@ data = Data(
     }
 
 )
+a = data.to_json()
 
-response = requests.post('https://api.todoist.com/sync/v9/sync', headers=headers, data=data.toJson())
+response = requests.post('https://api.todoist.com/sync/v9/sync', headers=headers, data=data.to_json())
 
 success = str(response.content).__contains__('sync_status')
 print(f'success: {success}')
-exit()
-'''
-$ curl https://api.todoist.com/sync/v9/sync \
-    -H "Authorization: Bearer 0123456789abcdef0123456789abcdef01234567" \
-    -d commands='[
-    {
-        "type": "item_move",
-        "uuid": "318d16a7-0c88-46e0-9eb5-cde6c72477c8",
-        "args": {
-            "id": "2995104339", 
-            "parent_id": "2995104340"
-        }
-    }]'
-
-'''
 
 handle_sync_shoppinglist(self, '')
 # self.todoist.sortLabeledShoppingList('Einkaufsliste')
 
 exit()
-
-allIngredientsStrings = crawler.get_ingredientStrings('https://cookidoo.de/recipes/recipe/de-DE/r51860')
-
-for ingredient in allIngredientsStrings:
-    self.todoist.addItemToProject('Einkaufsliste', ingredient, None, ingredient)
-
-self.todoist.api.commit()

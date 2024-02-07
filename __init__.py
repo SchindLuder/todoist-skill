@@ -288,7 +288,7 @@ class TodoistSkill(MycroftSkill):
 				retry = 0
 				while retry < 3:
 					answer = self.get_response('ask.for.category', {
-								'itemName' : unsortedItem
+								'item_name' : unsortedItem
 							})
 
 					if answer is None or answer == '' or answer == ' ':

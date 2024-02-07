@@ -1,7 +1,10 @@
 # import todoist
+import json
 import time
+import uuid
 from typing import Optional, Any
 
+import requests
 from todoist_api_python.api import TodoistAPI
 import re
 from datetime import date
@@ -9,6 +12,7 @@ from datetime import datetime as dt
 
 class TodoistWrapper():
     def __init__(self, token, loggingMethod):
+        self.token = token
         self.api = TodoistAPI(token)
         self.log = loggingMethod
         self.projects = None
@@ -67,9 +71,14 @@ class TodoistWrapper():
         result = list(filter(filter_project_id, self.get_tasks()))
         return result  # self.api.get_tasks(project_id=project_id)
 
-    def addItemToProject(self, project_name: str, itemName: str, sectionId=None, descriptionString=''):
+    def addItemToProject(self, project_name: str, item_name: str, section_id=None, description=''):
+        #quick add if neither description nor section is used (will add multiple times faster
+        if section_id is None and description == '':
+            return self.api.quick_add_task(f'{item_name} #{project_name}')
+
         project_id = self.get_project_id_by_name(project_name)
-        return self.api.add_task(itemName, project_id=project_id, section_id=sectionId, description=descriptionString)
+
+        return self.api.add_task(item_name, project_id=project_id, section_id=section_id, description=description)
 
     def getContentListFromItems(self, itemCollection):
         return list(map(lambda x: str(x.content).lower(), itemCollection))
@@ -179,46 +188,46 @@ class TodoistWrapper():
 
         return self.contentToLabel[content]
 
-    def getItemOrderIdsFromLabels(self, orderProjectName='Sortierung_Einkaufsliste'):
-        sortingEntries = self.get_open_items_of_project(orderProjectName)
+    def get_item_orderids_from_labels(self, order_project_name='Sortierung_Einkaufsliste'):
+        sorting_entries = self.get_open_items_of_project(order_project_name)
         labels = self.api.get_labels()
 
-        labelEntriesDict = self.__getSortingEntriesPerLabel(sortingEntries)
+        label_entries_dict = self.__getSortingEntriesPerLabel(sorting_entries)
 
         # update dictionary to later retrieve a label for this content
-        self.__updateContentToLabel(labelEntriesDict)
+        self.__updateContentToLabel(label_entries_dict)
 
-        usedLabelsInSorting = labelEntriesDict.keys()
+        used_labels_in_sorting = label_entries_dict.keys()
 
         # createLabels that are using in sorting but unknown yet
-        self.__createNewLabelsForUnknownLabels(list(map(lambda x: x.name, labels)), usedLabelsInSorting)
+        self.__createNewLabelsForUnknownLabels(list(map(lambda x: x.name, labels)), used_labels_in_sorting)
 
-        orderNumberContent = dict()
-        contentToLabel = dict()
+        order_number_content = dict()
+        content_to_label = dict()
 
-        for label in labelEntriesDict:
-            labelObject = next((x for x in labels if x.name == label), None)
-            order = labelObject.order
-            orderNumberContent.update({order: labelEntriesDict[label]})
+        for label in label_entries_dict:
+            label_object = next((x for x in labels if x.name == label), None)
+            order = label_object.order
+            order_number_content.update({order: label_entries_dict[label]})
 
-        sortedKeys = sorted(orderNumberContent)
+        sorted_keys = sorted(order_number_content)
 
-        globalCounter = 0
-        itemOrderIds = dict()
-        for key in sortedKeys:
-            contentCommaSeparated = orderNumberContent[key]
+        global_counter = 0
+        item_order_ids = dict()
+        for key in sorted_keys:
+            content_comma_separated = order_number_content[key]
 
-            contentSplit = contentCommaSeparated.split(',')
+            content_split = content_comma_separated.split(',')
 
-            for contentSingle in contentSplit:
-                if contentSingle in itemOrderIds:
+            for contentSingle in content_split:
+                if contentSingle in item_order_ids:
                     self.log(f'Entry \'{contentSingle}\' appears multiple times in sortingList!')
                     continue
 
-                itemOrderIds.update({contentSingle: globalCounter})
-                globalCounter += 1
+                item_order_ids.update({contentSingle: global_counter})
+                global_counter += 1
 
-        return itemOrderIds
+        return item_order_ids
 
     def get_config_elements(self, project_name: str, section_name: str):
         config_elements = []
@@ -260,7 +269,7 @@ class TodoistWrapper():
 
     def sort_labeled_shoppinglist(self, list_name='Einkaufsliste'):
         shopping_items = self.get_open_items_of_project(list_name)
-        item_order_ids = self.getItemOrderIdsFromLabels()
+        item_order_ids = self.get_item_orderids_from_labels()
 
         # item_order_ids ['Wassser' :0, 'Brot':1]
         unsorted_items = []
@@ -336,58 +345,56 @@ class TodoistWrapper():
                 self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem, unsorted_section_id, description)
 
         self.log('ordering items')
-        order = 1
+        id_child_order_list = []
 
-        for name in item_order_ids:
-            if name not in name_to_full_name_list:
+        #new approach with reordering via sync api
+        for shopping_item in shopping_items:
+            full_name = shopping_item.content
+            name = full_name_to_name[full_name]
+
+            # no label yet defined for the item put it to the end of the list
+            if name not in item_order_ids:
+                id_child_order_list.append({'id': shopping_item.id, 'child_order': 0, 'name' : name})
+                self.api.update_task(task_id=shopping_item.id, description = 'unsortiert')
                 continue
 
-            full_name_list = name_to_full_name_list[name]
+            id_child_order_list.append({'id': shopping_item.id, 'child_order': item_order_ids[name], 'name' : name})
+            self.api.update_task(task_id=shopping_item.id, description=self.get_label_name_for_content(name))
 
-            for full_name in full_name_list:
-                shopping_item = next(x for x in shopping_items if x.content == full_name)
-                shopping_items.remove(shopping_item)
-                label_name = self.get_label_name_for_content(name)
-                start = time.time()
+        def sort_by_child_order(element):
+            return element['child_order']
 
-                '''
-                # = project
-                / = section
-                @ = label
-                + = assignee
-                parent id is missing 
-                '''
+        id_child_order_list.sort(key = sort_by_child_order)
 
-                self.api.update_task(shopping_item.id, order = order)
-                order = order+1
-                continue
-                result = self.api.quick_add_task(f'{shopping_item.content} #Einkaufsliste @{label_name}')
+        class Args:
+            def __init__(self,items):
+                self.items = items
 
-                if shopping_item.description is not '':
-                    self.api.update_task(result.task.id, description=shopping_item.description)
+            def to_json(self):
+                return json.dumps(self, default=lambda o: o.__dict__)
 
-                '''self.api.add_task(
-                    content=shopping_item.content,
-                    # order=orderInProject,
-                    description=shopping_item.description,
-                    labels=labels,
-                    priority=shopping_item.priority,
-                    due=shopping_item.due,
-                    assignee_id=shopping_item.assignee_id,
-                    project_id=shopping_item.project_id,
-                    section_id=shopping_item.section_id,
-                    parent_id=shopping_item.parent_id
-                )'''
+        class Data:
+            def __init__(self, commands):
+                self.commands = [commands]
 
-                self.log(f'add: {time.time() - start} seconds')
+            def to_json(self):
+                return json.dumps(self, default=lambda o: o.__dict__)
 
-                start = time.time()
-                try:
-                    self.api.close_task(shopping_item.id)
-                except:
-                    self.log(f'Could not delete {shopping_item.content}')
+        args = Args(id_child_order_list)
 
-                self.log(f'delete: {time.time() - start} seconds')
+        data = Data(
+            {
+                'type': 'item_reorder',
+                'uuid': str(uuid.uuid4()),
+                'args': Args(id_child_order_list)
+            }
+        )
+        headers = {'Authorization': f'Bearer {self.token}', 'Content-Type': 'application/json'}
+        response = requests.post('https://api.todoist.com/sync/v9/sync', headers=headers, data=data.to_json())
+
+        success = str(response.content).__contains__('sync_status')
+        print(f'Reordering success: {success}')
+
         return unsorted_items
 
     def get_or_add_section(self, project_name, section_name):
