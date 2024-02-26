@@ -249,7 +249,10 @@ class TodoistWrapper():
         for unit in units:
             unit_regex += unit.replace('.', '\\.') + ' |'
 
-        unit_regex = '(' + unit_regex.rstrip('|') + '){0,2}'
+        for amount in amounts:
+            unit_regex += amount.replace('.', '\\.') + ' |'
+
+        unit_regex = '(?P<unit>' + unit_regex.rstrip('|') + '){0,2}'
 
         adjectives_regex = ''
         for adjective in adjectives:
@@ -265,7 +268,8 @@ class TodoistWrapper():
 
         # added 0-9 for example '10 g Dinkelmehl Type 630'
         # factor detection: [0-9]{1,2},[0-9]{1} x ){0,1}
-        regex = r'([0-9\-\.\s½¼¾]{1,10}){0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
+        regex = r'(?P<amount>[0-9\-\.\s½¼¾]{1,10}){0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
+        #regex = r'(?P<amount>[0-9\-\.\s½¼¾]{1,10}){0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
         #regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\.]{0,10}\s{0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
 
         return regex
@@ -285,6 +289,7 @@ class TodoistWrapper():
         adjectives = self.get_config_elements('Mycroft-Settings', 'Adjektive')
         amounts = self.get_config_elements('Mycroft-Settings', 'Einheiten')
         regex = self.build_shopping_ingredient_regex(units, adjectives, amounts)
+        name_amount_dict = {}
 
         for shoppingItem in shopping_items:
             full_name = shoppingItem.content
@@ -312,6 +317,29 @@ class TodoistWrapper():
 
             if match is not None:
                 ingredient_from_match = match.group('ingredient')
+                unit_from_match = match.group('unit')
+                amount_from_match = match.group('amount')
+
+                if amount_from_match is None:
+                    amount_from_match = '1'
+                if unit_from_match is None:
+                    unit_from_match = 'Stück'
+                else:
+                    unit_from_match = unit_from_match.rstrip(' ')
+
+                ingredient_unit = f'{ingredient_from_match}_{unit_from_match}'
+
+                if ingredient_unit in name_amount_dict:
+                    name_amount_dict.update({ingredient_unit: {
+                        'amount_string': (name_amount_dict[ingredient_unit]['amount_string'] + f'+{amount_from_match}'),
+                        'task_ids': (name_amount_dict[ingredient_unit]['task_ids'] + f'+{shoppingItem.id}')
+                        }
+                    })
+                else:
+                    name_amount_dict[ingredient_unit] = {
+                        'amount_string': amount_from_match,
+                        'task_ids': shoppingItem.id
+                    }
 
                 if ingredient_from_match is '':
                     self.log('got empty match for ' + name + ' -> ' + ingredient_from_match)
@@ -330,6 +358,48 @@ class TodoistWrapper():
 
             if name not in item_order_ids:
                 unsorted_items.append(name)
+
+        #self.get_or_add_section('Einkaufsliste', 'Addiert')
+        for name_amount in name_amount_dict:
+
+            continue
+            # todo re-enable the adding after it is clear how the sorting can be setup once again
+            split = name_amount.split('_')
+            name = split[0]
+            unit = split[1]
+            amounts_ids = name_amount_dict[name_amount]
+            amounts_split = amounts_ids['amount_string'].split('+')
+            ids_split = amounts_ids['task_ids'].split('+')
+
+            total_amount = 0
+
+            for amount_string in amounts_split:
+                amount_string = amount_string.replace('½', '.5').replace('¼','.25').replace('¾','.75').replace(' .','.')
+                if amount_string.startswith('.'):
+                    amount_string = f'0{amount_string}'
+
+                amount = float(amount_string)
+
+                total_amount = total_amount + amount
+                # jetzt muss man die alten tasks löschen und die neue erstellen
+
+            # attention: quick add will not create the section if it does not already exist!
+            self.get_or_add_section('Einkaufsliste', 'Addiert')
+            try:
+                total_amount = int(total_amount)
+            except ValueError:
+                self.log(f'could not convert {total_amount}')
+
+            # todo mit quick_add und // macht man eine Beschreibung --> in add einbauen
+            self.api.quick_add_task(f'{name}, {total_amount} {unit} #Einkaufsliste /Addiert //{total_amount} {unit}')
+
+            # for task_id in ids_split:
+                # todo delete the old tasks by id
+                # todo update all the dicts for sorting with the aggregated values
+                # self.api.delete_task(task_id)
+
+
+
 
         if len(unsorted_items) > 0:
             # save unsorted (unknown) items so that an order can be configured
@@ -350,24 +420,25 @@ class TodoistWrapper():
         self.log('ordering items')
         id_child_order_list = []
 
-        #new approach with reordering via sync api
+
+        # new approach with reordering via sync api
         for shopping_item in shopping_items:
             full_name = shopping_item.content
             name = full_name_to_name[full_name]
 
-            #no label yet defined for the item put it to the end of the list
+            # no label yet defined for the item put it to the end of the list
             if name not in item_order_ids:
-                id_child_order_list.append({'id': shopping_item.id, 'child_order': 0, 'name' : name})
-                self.api.update_task(task_id=shopping_item.id, description = 'unsortiert')
+                id_child_order_list.append({'id': shopping_item.id, 'child_order': 0, 'name': name})
+                self.api.update_task(task_id=shopping_item.id, description='unsortiert')
                 continue
 
-            id_child_order_list.append({'id': shopping_item.id, 'child_order': item_order_ids[name], 'name' : name})
+            id_child_order_list.append({'id': shopping_item.id, 'child_order': item_order_ids[name], 'name': name})
 
-            #todo get former description and insert label in front
+            # get former description and insert label in front
             task = self.api.get_task(shopping_item.id)
             label = self.get_label_name_for_content(name)
 
-            #only insert label once
+            # only insert label once
             if label in task.description:
                 continue
 
