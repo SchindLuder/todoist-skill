@@ -245,6 +245,13 @@ self.set_api(self.todoist)
 
 open_items = self.todoist.get_open_items_of_project('Einkaufsliste')
 
+
+handle_sync_shoppinglist(self, '')
+# self.todoist.sortLabeledShoppingList('Einkaufsliste')
+
+exit()
+
+
 class Args:
     def __init__(self):
         self.items = []
@@ -305,8 +312,3 @@ response = requests.post('https://api.todoist.com/sync/v9/sync', headers=headers
 
 success = str(response.content).__contains__('sync_status')
 print(f'success: {success}')
-
-handle_sync_shoppinglist(self, '')
-# self.todoist.sortLabeledShoppingList('Einkaufsliste')
-
-exit()

@@ -39,6 +39,8 @@ class TodoistWrapper():
         return self.sections
 
     def get_tasks(self):
+        return self.api.get_tasks()
+        #todo implement caching if required
         if self.tasks is None:
             self.tasks = self.api.get_tasks()
 
@@ -242,7 +244,7 @@ class TodoistWrapper():
 
         return config_elements
 
-    def __buildShoppingItemRegex(self, units, adjectives, amounts):
+    def build_shopping_ingredient_regex(self, units, adjectives, amounts):
         unit_regex = ''
         for unit in units:
             unit_regex += unit.replace('.', '\\.') + ' |'
@@ -263,7 +265,8 @@ class TodoistWrapper():
 
         # added 0-9 for example '10 g Dinkelmehl Type 630'
         # factor detection: [0-9]{1,2},[0-9]{1} x ){0,1}
-        regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\.]{0,10}\s{0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
+        regex = r'([0-9\-\.\s½¼¾]{1,10}){0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
+        #regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\.]{0,10}\s{0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
 
         return regex
 
@@ -281,7 +284,7 @@ class TodoistWrapper():
         units = ['g', 'kg', 'ml', 'l']
         adjectives = self.get_config_elements('Mycroft-Settings', 'Adjektive')
         amounts = self.get_config_elements('Mycroft-Settings', 'Einheiten')
-        regex = self.__buildShoppingItemRegex(units, adjectives, amounts)
+        regex = self.build_shopping_ingredient_regex(units, adjectives, amounts)
 
         for shoppingItem in shopping_items:
             full_name = shoppingItem.content
@@ -352,14 +355,24 @@ class TodoistWrapper():
             full_name = shopping_item.content
             name = full_name_to_name[full_name]
 
-            # no label yet defined for the item put it to the end of the list
+            #no label yet defined for the item put it to the end of the list
             if name not in item_order_ids:
                 id_child_order_list.append({'id': shopping_item.id, 'child_order': 0, 'name' : name})
                 self.api.update_task(task_id=shopping_item.id, description = 'unsortiert')
                 continue
 
             id_child_order_list.append({'id': shopping_item.id, 'child_order': item_order_ids[name], 'name' : name})
-            self.api.update_task(task_id=shopping_item.id, description=self.get_label_name_for_content(name))
+
+            #todo get former description and insert label in front
+            task = self.api.get_task(shopping_item.id)
+            label = self.get_label_name_for_content(name)
+
+            #only insert label once
+            if label in task.description:
+                continue
+
+            description = f'{self.get_label_name_for_content(name)}, {task.description}'
+            self.api.update_task(task_id=shopping_item.id, description=description)
 
         def sort_by_child_order(element):
             return element['child_order']
