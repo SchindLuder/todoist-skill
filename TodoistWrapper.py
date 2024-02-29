@@ -10,6 +10,7 @@ import re
 from datetime import date
 from datetime import datetime as dt
 
+
 class TodoistWrapper():
     def __init__(self, token, loggingMethod):
         self.token = token
@@ -40,7 +41,7 @@ class TodoistWrapper():
 
     def get_tasks(self):
         return self.api.get_tasks()
-        #todo implement caching if required
+        # todo implement caching if required
         if self.tasks is None:
             self.tasks = self.api.get_tasks()
 
@@ -74,7 +75,7 @@ class TodoistWrapper():
         return result  # self.api.get_tasks(project_id=project_id)
 
     def addItemToProject(self, project_name: str, item_name: str, section_id=None, description=''):
-        #quick add if neither description nor section is used (will add multiple times faster
+        # quick add if neither description nor section is used (will add multiple times faster
         if section_id is None and description == '':
             return self.api.quick_add_task(f'{item_name} #{project_name}')
 
@@ -269,19 +270,46 @@ class TodoistWrapper():
         # added 0-9 for example '10 g Dinkelmehl Type 630'
         # factor detection: [0-9]{1,2},[0-9]{1} x ){0,1}
         regex = r'(?P<amount>[0-9\-\.\s½¼¾]{1,10}){0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
-        #regex = r'(?P<amount>[0-9\-\.\s½¼¾]{1,10}){0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
-        #regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\.]{0,10}\s{0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
+        # regex = r'(?P<amount>[0-9\-\.\s½¼¾]{1,10}){0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
+        # regex = r'([0-9]{1,2}\.[0-9]{1}\sx\s){0,1}[0-9½¼¾\-\.]{0,10}\s{0,1}' + unit_regex + adjectives_regex + amount_regex + adjectives_regex + '\s{0,1}(?P<ingredient>[\D\-]{,})'
 
         return regex
+
+    def store_unsorted_items(self, unsorted_items, name_to_full_name_list):
+        if len(unsorted_items) < 1:
+            return
+
+        unsorted_section_id = self.get_or_add_section('Sortierung_Einkaufsliste', 'Unsortiert')
+        known_unsorted_items = self.getItemsOfSection('Unsortiert', 'Sortierung_Einkaufliste')
+        for unsortedItem in unsorted_items:
+            if next((x for x in known_unsorted_items if x.content == unsortedItem), None) is not None:
+                self.log(unsortedItem + ' is already in the unsorted section')
+                continue
+
+            description = ''
+            if unsortedItem in name_to_full_name_list:
+                description = str(name_to_full_name_list[unsortedItem])
+
+            # add labeled item to sorting list
+            self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem, unsorted_section_id, description)
 
     def sort_labeled_shoppinglist(self, list_name='Einkaufsliste'):
         shopping_items = self.get_open_items_of_project(list_name)
         item_order_ids = self.get_item_orderids_from_labels()
 
-        # item_order_ids ['Wassser' :0, 'Brot':1]
         unsorted_items = []
         full_name_to_name = {}
         name_to_full_name_list = {}
+
+        def store_name_to_full_name(_name, _full_name):
+            if _full_name not in full_name_to_name:
+                full_name_to_name[_full_name] = _name
+                self.log(_full_name + ' --> ' + _name)
+
+            if _name not in name_to_full_name_list:
+                name_to_full_name_list[_name] = [_full_name]
+            else:
+                name_to_full_name_list[_name].append(_full_name)
 
         self.log(f'going through {len(shopping_items)} shopping items')
 
@@ -291,6 +319,40 @@ class TodoistWrapper():
         regex = self.build_shopping_ingredient_regex(units, adjectives, amounts)
         name_amount_dict = {}
 
+        def preformat_shopping_item(full_content):
+            # remove everything inside ( )
+            preformatted_content = re.sub(r'\(.*\)', '', full_content).strip()
+
+            # remove anything after commata or oder and only use first part for evaluation
+            preformatted_content = preformatted_content.split(',')[0].split('oder')[0]
+
+            # e.g. Weizenmehl Type 405
+            preformatted_content = re.sub(r'Type [0-9]{1,}', '', preformatted_content)
+
+            # remove trailing descriptions
+            preformatted_content = re.sub(r'( (und |etwas |mehr |zum |nach ){1,}([\D]{1,}){0,1})$', '', preformatted_content).strip()
+
+            # shorten - range indications
+            preformatted_content = preformatted_content.replace(' - ', '-')
+
+            return preformatted_content
+
+        def update_name_amount_dict(found_ingredient, found_amount, found_unit, found_task_id):
+            _ingredient_unit = f'{found_ingredient}_{found_unit}'
+
+            if _ingredient_unit in name_amount_dict:
+                name_amount_dict.update({_ingredient_unit: {
+                    'amount_string': (
+                            name_amount_dict[_ingredient_unit]['amount_string'] + f'+{found_amount}'),
+                    'task_ids': (name_amount_dict[_ingredient_unit]['task_ids'] + f'+{found_task_id}')
+                }
+                })
+            else:
+                name_amount_dict[_ingredient_unit] = {
+                    'amount_string': found_amount,
+                    'task_ids': found_task_id
+                }
+
         for shoppingItem in shopping_items:
             full_name = shoppingItem.content
 
@@ -298,25 +360,31 @@ class TodoistWrapper():
             if 'http' in full_name:
                 continue
 
-            # remove everything inside ( )
-            name = re.sub(r'\(.*\)', '', full_name).strip()
+            aggregated_match = re.search(r'(?P<ingredient>[A-Za-zäöüÄÖÜ\s]{1,}),\s(?P<amount>[0-9\.]{1,})\s(?P<unit>[A-züöäÜÖÄÜ]{1,})', full_name)
 
-            # remove anything after commata or oder and only use first part for evaluation
-            name = name.split(',')[0].split('oder')[0]
+            if aggregated_match is not None:
+                ingredient_from_match = aggregated_match.group('ingredient')
+                amount_from_match = aggregated_match.group('amount')
+                unit_from_match = aggregated_match.group('unit')
 
-            # e.g. Weizenmehl Type 405
-            name = re.sub(r'Type [0-9]{1,}', '', name)
+                # name_amount_dict has to be updated as further items could be concluded into it
+                # e.g. Salz, 5 TL + 1 TL Salz
+                update_name_amount_dict(ingredient_from_match,amount_from_match,unit_from_match, shoppingItem.id)
+                store_name_to_full_name(ingredient_from_match, shoppingItem.content)
 
-            # remove trailing descriptions
-            name = re.sub(r'( (und |etwas |mehr |zum |nach ){1,}([\D]{1,}){0,1})$', '', name).strip()
+                if ingredient_from_match not in item_order_ids:
+                    unsorted_items.append(ingredient_from_match)
 
-            # shorten - range indications
-            name = name.replace(' - ', '-')
+                continue
+
+            name = preformat_shopping_item(full_name)
 
             match = re.search(regex, name)
 
             if match is not None:
                 ingredient_from_match = match.group('ingredient')
+                # for unsorted logic
+                name = ingredient_from_match
                 unit_from_match = match.group('unit')
                 amount_from_match = match.group('amount')
 
@@ -329,41 +397,20 @@ class TodoistWrapper():
 
                 ingredient_unit = f'{ingredient_from_match}_{unit_from_match}'
 
-                if ingredient_unit in name_amount_dict:
-                    name_amount_dict.update({ingredient_unit: {
-                        'amount_string': (name_amount_dict[ingredient_unit]['amount_string'] + f'+{amount_from_match}'),
-                        'task_ids': (name_amount_dict[ingredient_unit]['task_ids'] + f'+{shoppingItem.id}')
-                        }
-                    })
-                else:
-                    name_amount_dict[ingredient_unit] = {
-                        'amount_string': amount_from_match,
-                        'task_ids': shoppingItem.id
-                    }
+                update_name_amount_dict(ingredient_from_match,amount_from_match,unit_from_match, shoppingItem.id)
 
                 if ingredient_from_match is '':
                     self.log('got empty match for ' + name + ' -> ' + ingredient_from_match)
                     continue
 
-                name = ingredient_from_match
-
-                if full_name not in full_name_to_name:
-                    full_name_to_name[full_name] = name
-                    self.log(full_name + ' --> ' + name)
-
-                if name not in name_to_full_name_list:
-                    name_to_full_name_list[name] = [full_name]
-                else:
-                    name_to_full_name_list[name].append(full_name)
+                store_name_to_full_name(ingredient_from_match, shoppingItem.content)
 
             if name not in item_order_ids:
                 unsorted_items.append(name)
 
-        #self.get_or_add_section('Einkaufsliste', 'Addiert')
+        # create aggregated items
         for name_amount in name_amount_dict:
-
-            continue
-            # todo re-enable the adding after it is clear how the sorting can be setup once again
+            # todo check if the creation of new tasks and deletion of old could be prevented when already aggregated items are found
             split = name_amount.split('_')
             name = split[0]
             unit = split[1]
@@ -374,84 +421,80 @@ class TodoistWrapper():
             total_amount = 0
 
             for amount_string in amounts_split:
-                amount_string = amount_string.replace('½', '.5').replace('¼','.25').replace('¾','.75').replace(' .','.')
+                amount_string = amount_string.replace('½', '.5').replace('¼', '.25').replace('¾', '.75').replace(' .',
+                                                                                                                 '.')
                 if amount_string.startswith('.'):
                     amount_string = f'0{amount_string}'
 
                 amount = float(amount_string)
 
                 total_amount = total_amount + amount
-                # jetzt muss man die alten tasks löschen und die neue erstellen
 
-            # attention: quick add will not create the section if it does not already exist!
-            self.get_or_add_section('Einkaufsliste', 'Addiert')
-            try:
-                total_amount = int(total_amount)
-            except ValueError:
-                self.log(f'could not convert {total_amount}')
+            # convert to int if no digits are contained
+            if (str(total_amount)).endswith('.0'):
+                try:
+                    total_amount = int(total_amount)
+                except ValueError:
+                    self.log(f'could not convert {total_amount}')
 
             # todo mit quick_add und // macht man eine Beschreibung --> in add einbauen
-            self.api.quick_add_task(f'{name}, {total_amount} {unit} #Einkaufsliste /Addiert //{total_amount} {unit}')
 
-            # for task_id in ids_split:
-                # todo delete the old tasks by id
-                # todo update all the dicts for sorting with the aggregated values
-                # self.api.delete_task(task_id)
+            creation_string = f'{name}, {total_amount} {unit} #Einkaufsliste //{total_amount} {unit}'
+            self.log(creation_string)
+            self.api.quick_add_task(creation_string)
 
+            for task_id in ids_split:
+                self.api.delete_task(task_id)
 
-
-
-        if len(unsorted_items) > 0:
-            # save unsorted (unknown) items so that an order can be configured
-            unsorted_section_id = self.get_or_add_section('Sortierung_Einkaufsliste', 'Unsortiert')
-            known_unsorted_items = self.getItemsOfSection('Unsortiert', 'Sortierung_Einkaufliste')
-            for unsortedItem in unsorted_items:
-                if next((x for x in known_unsorted_items if x.content == unsortedItem), None) is not None:
-                    self.log(unsortedItem + ' is already in the unsorted section')
-                    continue
-
-                description = ''
-                if unsortedItem in name_to_full_name_list:
-                    description = str(name_to_full_name_list[unsortedItem])
-
-                # add labeled item to sorting list
-                self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem, unsorted_section_id, description)
+        # store unsorted items so that they can be labeled
+        self.store_unsorted_items(unsorted_items, name_to_full_name_list)
 
         self.log('ordering items')
         id_child_order_list = []
 
+        shopping_items = self.get_open_items_of_project('Einkaufsliste')
 
         # new approach with reordering via sync api
         for shopping_item in shopping_items:
             full_name = shopping_item.content
-            name = full_name_to_name[full_name]
+            if 'http' in full_name:
+                continue
+
+            name = preformat_shopping_item(full_name)
+            match = re.search(regex, name)
+
+            if match is None:
+                self.log(f'got empty match for _name:{name} from _full_name {full_name}')
+                continue
+
+            name = match.group('ingredient')
 
             # no label yet defined for the item put it to the end of the list
             if name not in item_order_ids:
-                id_child_order_list.append({'id': shopping_item.id, 'child_order': 0, 'name': name})
+                id_child_order_list.append({'id': shopping_item.id, 'child_order': 0, '_name': name})
                 self.api.update_task(task_id=shopping_item.id, description='unsortiert')
                 continue
 
-            id_child_order_list.append({'id': shopping_item.id, 'child_order': item_order_ids[name], 'name': name})
+            id_child_order_list.append({'id': shopping_item.id, 'child_order': item_order_ids[name], '_name': name})
 
             # get former description and insert label in front
-            task = self.api.get_task(shopping_item.id)
+            #task = self.api.get_task(shopping_item.id)
             label = self.get_label_name_for_content(name)
 
             # only insert label once
-            if label in task.description:
+            if label in shopping_item.description:
                 continue
 
-            description = f'{self.get_label_name_for_content(name)}, {task.description}'
+            description = f'{self.get_label_name_for_content(name)}, {shopping_item.description}'
             self.api.update_task(task_id=shopping_item.id, description=description)
 
         def sort_by_child_order(element):
             return element['child_order']
 
-        id_child_order_list.sort(key = sort_by_child_order)
+        id_child_order_list.sort(key=sort_by_child_order)
 
         class Args:
-            def __init__(self,items):
+            def __init__(self, items):
                 self.items = items
 
             def to_json(self):
@@ -501,7 +544,7 @@ class TodoistWrapper():
             self.log(f'could not find section \'{section_name}\' in project \'{project_name}\'. Going to create it')
             section = self.api.add_section(section_name, project_id)
             section_id = section.id
-            #clear cache to get all updated sections on next call
+            # clear cache to get all updated sections on next call
             self.sections = None
 
         self.log(f'Section \'{section_name}\' in project \'{project_name}\' has id \'{section_id}\'')
