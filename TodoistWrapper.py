@@ -360,7 +360,7 @@ class TodoistWrapper():
             if 'http' in full_name:
                 continue
 
-            aggregated_match = re.search(r'(?P<ingredient>[A-Za-zäöüÄÖÜ\s\-]{1,}),\s(?P<amount>[0-9\.]{1,})\s(?P<unit>[A-züöäÜÖÄÜ]{1,})', full_name)
+            aggregated_match = re.search(r'(?P<ingredient>[A-Za-zäöüÄÖÜ\s\-]{1,}),\s(?P<amount>[0-9\.\,]{1,})\s(?P<unit>[A-züöäÜÖÄÜ]{1,})', full_name)
 
             if aggregated_match is not None:
                 ingredient_from_match = aggregated_match.group('ingredient')
@@ -426,7 +426,9 @@ class TodoistWrapper():
                     split = amount_string.split('-')
                     amount_string = split[0]
 
-                amount_string = amount_string.replace('½', '.5').replace('¼', '.25').replace('¾', '.75').replace(' .',
+                # revert back to normal decimal separator . from , that is used to avoid interpretation as a date
+                # replace fraction characters with decimal represenation
+                amount_string = amount_string.replace(',', '.').replace('½', '.5').replace('¼', '.25').replace('¾', '.75').replace(' .',
                                                                                                                  '.')
                 if amount_string.startswith('.'):
                     amount_string = f'0{amount_string}'
@@ -444,7 +446,10 @@ class TodoistWrapper():
 
             # todo mit quick_add und // macht man eine Beschreibung --> in add einbauen
 
-            creation_string = f'{name}, {total_amount} {unit} #Einkaufsliste //{total_amount} {unit}'
+            # do not use . as separator as the api will interprete it as a date in case of e.g. 1.5 -> 1st of may
+            total_amount_string = str(total_amount).replace('.', ',')
+
+            creation_string = f'{name}, {total_amount_string} {unit} #Einkaufsliste //{total_amount_string} {unit}'
             self.log(creation_string)
             self.api.quick_add_task(creation_string)
 
