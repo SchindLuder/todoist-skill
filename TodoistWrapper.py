@@ -360,7 +360,7 @@ class TodoistWrapper():
             if 'http' in full_name:
                 continue
 
-            aggregated_match = re.search(r'(?P<ingredient>[A-Za-zäöüÄÖÜ\s]{1,}),\s(?P<amount>[0-9\.]{1,})\s(?P<unit>[A-züöäÜÖÄÜ]{1,})', full_name)
+            aggregated_match = re.search(r'(?P<ingredient>[A-Za-zäöüÄÖÜ\s\-]{1,}),\s(?P<amount>[0-9\.]{1,})\s(?P<unit>[A-züöäÜÖÄÜ]{1,})', full_name)
 
             if aggregated_match is not None:
                 ingredient_from_match = aggregated_match.group('ingredient')
@@ -421,6 +421,11 @@ class TodoistWrapper():
             total_amount = 0
 
             for amount_string in amounts_split:
+                #e.g. 1/2 - 3/4 TL
+                if '-' in amount_string:
+                    split = amount_string.split('-')
+                    amount_string = split[0]
+
                 amount_string = amount_string.replace('½', '.5').replace('¼', '.25').replace('¾', '.75').replace(' .',
                                                                                                                  '.')
                 if amount_string.startswith('.'):
