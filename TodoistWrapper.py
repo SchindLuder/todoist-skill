@@ -532,6 +532,19 @@ class TodoistWrapper():
         success = str(response.content).__contains__('sync_status')
         print(f'Reordering success: {success}')
 
+        section_id = self.get_or_add_section('Einkaufsliste', 'Gewürze')
+
+        def find_label_in_description(task):
+            return task.description is not None and task.description.startswith('Gewürze,')
+
+        gewuerz_items = filter(find_label_in_description,self.get_open_items_of_project('Einkaufsliste'))
+        #gewuerz_items = next(x for x in self.get_open_items_of_project('Einkaufsliste') if (x.description is not None and x.description.startswith('Gewürze,')))
+
+        # as update task does not support the section_id property (readonly as of 03/2024
+        for gewuerz_item in list(gewuerz_items):
+            self.api.quick_add_task(f'{gewuerz_item.content} #Einkaufsliste /Gewürze //{gewuerz_item.description}')
+            self.api.delete_task(gewuerz_item.id)
+
         return unsorted_items
 
     def get_or_add_section(self, project_name, section_name):
