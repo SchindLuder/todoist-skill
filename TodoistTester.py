@@ -9,6 +9,7 @@ import uuid
 import requests
 import json
 
+
 class log(object):
     def info(self, message):
         print(message)
@@ -115,57 +116,61 @@ def handle_sync_shoppinglist(self, message):
     if not self.checkTodoistConfiguration():
         return
 
-    def getUrlsToCrawl(todoist, projectName='Einkaufsliste', clearUrls=True):
-        urls = []
-        recipes = self.todoist.get_open_items_of_project(projectName)
+    def get_urls_to_crawl(todoist, project_name='Einkaufsliste', clear_urls=True):
+        urls_recipenames = []
+        recipes = self.todoist.get_open_items_of_project(project_name)
         for recipe in recipes:
-            fullString = str(recipe.content)
-            if not 'https' in fullString:
+            full_string = str(recipe.content)
+            if 'https' not in full_string:
                 continue
 
-            url = 'https' + fullString.split('https')[-1]
+            recipe_name = full_string.split('Schau')[0]
+            url = 'https' + full_string.split('https')[-1]
             # remove trailing ) if url was added manually and not via share in Cookidoo
             url = url.strip(')')
-            urls.append(url)
+            urls_recipenames.append((url,recipe_name))
 
-            if clearUrls:
+            if clear_urls:
                 self.todoist.api.delete_task(task_id=recipe.id)
 
-        return urls
+        return urls_recipenames
 
     crawler = Crawler(self.log.info)
 
     allIngredientStrings = []
     allIngredientDescriptions = []
 
-    urls = getUrlsToCrawl(self.todoist, 'Einkaufsliste', True)
+    urls_descriptions = get_urls_to_crawl(self.todoist, 'Einkaufsliste', True)
 
-    numberOfUrls = len(urls)
+    number_of_urls = len(urls_descriptions)
 
-    if numberOfUrls > 0:
-        self.speak_dialog('project.urls.found', {'numberOfUrls': str(numberOfUrls)})
+    if number_of_urls > 0:
+        self.speak_dialog('project.urls_recipenames.found', {'numberOfUrls': str(number_of_urls)})
 
-    for url in urls:
+    for url_description in urls_descriptions:
+        url = url_description[0]
+        recipe_name = url_description[1]
         match = re.search(' x(?P<factor>[0-9]{1,2},[0-9]{1})$', url)
-
         factor = None
 
+        # no factorized recipe
         if match is not None:
-            url = url.split(' x')[0]
-            url = url.strip(')')
+            url_description = url.split(' x')[0]
+            url_description = url.strip(')')
             factor = match.group('factor')
 
             if ',' in factor:
                 factor = factor.replace(',', '.')
 
-        ingredientStrings = crawler.get_ingredientStrings(url)
-        ingredientDescriptions = [None] * len(ingredientStrings)
+        ingredient_strings = crawler.get_ingredientStrings(url)
+        ingredient_descriptions = [recipe_name for x in range(len(ingredient_strings))]
 
+        # there is a factor to be applied for the ingredients
         if factor is not None:
-            factorFloat = float(factor.replace(',', '.'))
+            factor_float = float(factor.replace(',', '.'))
 
-            for index, ingredientString in enumerate(ingredientStrings):
-                ingredientDescriptions[index] = factor + ' x ' + ingredientString
+            for index, ingredientString in enumerate(ingredient_strings):
+                ingredient_descriptions[index] = factor + ' x ' + ingredientString
 
                 amountRegex = r'^(?P<amount>[0-9½¼¾\- ]{0,10}) '
                 match = re.search(amountRegex, ingredientString)
@@ -186,27 +191,27 @@ def handle_sync_shoppinglist(self, message):
                             amount = firstNumber + secondNumber
                         except ValueError:
                             error = 'could not convert ' + amount
-                            self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
+                            self.log.debug('Error in factorizing: ' + ingredient_descriptions[index])
 
                     try:
                         amountFloat = float(str(amount))
 
-                        totalFloat = factorFloat * amountFloat
+                        totalFloat = factor_float * amountFloat
 
-                        ingredientStrings[index] = ingredientString.replace(originalAmount, str(totalFloat))
+                        ingredient_strings[index] = ingredientString.replace(originalAmount, str(totalFloat))
 
                         continue
 
                     except ValueError as e:
                         f = e
-                        self.log.debug('Error in factorizing: ' + ingredientDescriptions[index])
+                        self.log.debug('Error in factorizing: ' + ingredient_descriptions[index])
                         self.log.debug(e)
 
             # cant calculate the result of the factor. just use the full string
-            ingredientStrings[index] = ingredientDescriptions[index]
+            ingredient_strings[index] = ingredient_descriptions[index]
 
-        allIngredientStrings.extend(ingredientStrings)
-        allIngredientDescriptions.extend(ingredientDescriptions)
+        allIngredientStrings.extend(ingredient_strings)
+        allIngredientDescriptions.extend(ingredient_descriptions)
 
     index = 0
     if len(allIngredientStrings) > 0:
@@ -245,7 +250,6 @@ self.set_api(self.todoist)
 
 open_items = self.todoist.get_open_items_of_project('Einkaufsliste')
 
-
 handle_sync_shoppinglist(self, '')
 # self.todoist.sortLabeledShoppingList('Einkaufsliste')
 
@@ -272,10 +276,10 @@ def build_reorder_args(list_of_tasks):
     list_of_tasks.sort(key=get_order)
     counter = 0
     for task in list_of_tasks:
-        counter = counter +1
+        counter = counter + 1
 
-        #if counter % 2:
-            #continue
+        # if counter % 2:
+        # continue
 
         id_order_object = {'id': task.id, 'child_order': current_order}  # task.order}
         print(f'{task.content} from {task.order} to {current_order}')
