@@ -74,14 +74,19 @@ class TodoistWrapper():
         result = list(filter(filter_project_id, self.get_tasks()))
         return result  # self.api.get_tasks(project_id=project_id)
 
-    def addItemToProject(self, project_name: str, item_name: str, section_id=None, description=''):
+    def add_item_to_project(self, project_name: str, item_name: str, section_id=None, description='', parent_id = None):
         # quick add if neither description nor section is used (will add multiple times faster
-        if section_id is None and description == '':
-            return self.api.quick_add_task(f'{item_name} #{project_name}')
+        if section_id is None and parent_id is None:
+            quick_add_string = f'{item_name} #{project_name}'
+
+            if description is not '':
+                quick_add_string = f'{quick_add_string} //{description}'
+
+            return self.api.quick_add_task(quick_add_string).task
 
         project_id = self.get_project_id_by_name(project_name)
 
-        return self.api.add_task(item_name, project_id=project_id, section_id=section_id, description=description)
+        return self.api.add_task(item_name, project_id=project_id, section_id=section_id, description=description, parent_id = parent_id)
 
     def getContentListFromItems(self, itemCollection):
         return list(map(lambda x: str(x.content).lower(), itemCollection))
@@ -291,10 +296,28 @@ class TodoistWrapper():
                 description = str(name_to_full_name_list[unsortedItem])
 
             # add labeled item to sorting list
-            self.addItemToProject('Sortierung_Einkaufsliste', unsortedItem, unsorted_section_id, description)
+            self.add_item_to_project('Sortierung_Einkaufsliste', unsortedItem, unsorted_section_id, description)
+
+    def _get_filtered_list_for_sorting(self, list_name):
+        shopping_items = self.get_open_items_of_project(list_name)
+
+        def item_not_in_section(item):
+            return item.section_id is None
+
+        def item_has_no_parent(item):
+            return item.parent_id is None
+
+        def item_is_url(item):
+            return 'http' not in item.content
+
+        # filter out items that are either: a)in a section b) a sub-task
+        shopping_items = filter(item_not_in_section, shopping_items)
+        shopping_items = filter(item_is_url, shopping_items)
+        return list(filter(item_has_no_parent, shopping_items))
 
     def sort_labeled_shoppinglist(self, list_name='Einkaufsliste'):
-        shopping_items = self.get_open_items_of_project(list_name)
+        shopping_items = self._get_filtered_list_for_sorting(list_name)
+
         item_order_ids = self.get_item_orderids_from_labels()
 
         unsorted_items = []
@@ -356,10 +379,7 @@ class TodoistWrapper():
         for shoppingItem in shopping_items:
             full_name = shoppingItem.content
 
-            # ignore recipe urls
-            if 'http' in full_name:
-                continue
-
+            # do i still need this aggregated items are items that have child items?
             aggregated_match = re.search(r'(?P<ingredient>[A-Za-zäöüÄÖÜ\s\-]{1,}),\s(?P<amount>[0-9\.\,]{1,})\s(?P<unit>[A-züöäÜÖÄÜ]{1,})', full_name)
 
             if aggregated_match is not None:
@@ -408,6 +428,8 @@ class TodoistWrapper():
             if name not in item_order_ids:
                 unsorted_items.append(name)
 
+        all_items = self.get_open_items_of_project(list_name)
+
         # create aggregated items
         for name_amount in name_amount_dict:
             # todo check if the creation of new tasks and deletion of old could be prevented when already aggregated items are found
@@ -444,17 +466,34 @@ class TodoistWrapper():
                 except ValueError:
                     self.log(f'could not convert {total_amount}')
 
-            # todo mit quick_add und // macht man eine Beschreibung --> in add einbauen
-
             # do not use . as separator as the api will interprete it as a date in case of e.g. 1.5 -> 1st of may
             total_amount_string = str(total_amount).replace('.', ',')
 
-            creation_string = f'{name}, {total_amount_string} {unit} #Einkaufsliste //{total_amount_string} {unit}'
-            self.log(creation_string)
-            self.api.quick_add_task(creation_string)
+            aggregated_task = self.add_item_to_project('Einkaufsliste', f'{name}, {total_amount_string} {unit}')
 
+            # move all matching tasks under the aggregating one
             for task_id in ids_split:
+                # update task cannot change the parent_id. delete it first and create a new one with parent_id
+                task = self.api.get_task(task_id)
+
+                # move all sub_tasks of already aggregated tasks to the new aggregated task
+                def is_sub_task(task_to_check):
+                    return task_to_check.parent_id == task_id
+
+                sub_tasks = list(filter(is_sub_task, all_items))
+
+                for sub_task in sub_tasks:
+                    self.add_item_to_project('Einkaufsliste', sub_task.content, sub_task.section_id,
+                                             sub_task.description, aggregated_task.id)
+                    # sub_task will be deleted along with their parent task. no need to delete them separately
+
                 self.api.delete_task(task_id)
+
+                # create new task only if it has no subtasks
+                if len(sub_tasks) != 0:
+                    continue
+
+                self.add_item_to_project('Einkaufsliste', task.content, task.section_id, task.description, aggregated_task.id)
 
         # store unsorted items so that they can be labeled
         self.store_unsorted_items(unsorted_items, name_to_full_name_list)
@@ -462,14 +501,11 @@ class TodoistWrapper():
         self.log('ordering items')
         id_child_order_list = []
 
-        shopping_items = self.get_open_items_of_project('Einkaufsliste')
+        shopping_items = self._get_filtered_list_for_sorting(list_name)
 
         # new approach with reordering via sync api
         for shopping_item in shopping_items:
             full_name = shopping_item.content
-            if 'http' in full_name:
-                continue
-
             name = preformat_shopping_item(full_name)
             match = re.search(regex, name)
 

@@ -219,7 +219,7 @@ def handle_sync_shoppinglist(self, message):
 
     for ingredient in allIngredientStrings:
         index += 1
-        self.todoist.addItemToProject('Einkaufsliste', ingredient, None, allIngredientDescriptions[index - 1])
+        self.todoist.add_item_to_project('Einkaufsliste', ingredient, None, allIngredientDescriptions[index - 1])
 
     unsorted_items = self.todoist.sort_labeled_shoppinglist()
     self.speak('Einkaufsliste wurde sortiert')

@@ -80,7 +80,7 @@ class TodoistSkill(MycroftSkill):
 					item = (str(item)).replace(word[0], word[0].upper(),1)
 					continue
 
-			self.todoist.addItemToProject('Einkaufsliste', item, None, True)
+			self.todoist.add_item_to_project('Einkaufsliste', item, None, True)
 		
 		self.speak_dialog('project.added.item', {
 			'project': 'Einkaufsliste', 
@@ -270,7 +270,7 @@ class TodoistSkill(MycroftSkill):
 		
 		for ingredient in allIngredientStrings:
 			index += 1
-			self.todoist.addItemToProject('Einkaufsliste', ingredient,None, False,allIngredientDescriptions[index-1])
+			self.todoist.add_item_to_project('Einkaufsliste', ingredient, None, False, allIngredientDescriptions[index - 1])
 
 		unsortedItems = self.todoist.sortShoppingList()
 		self.speak('Einkaufsliste wurde sortiert')
