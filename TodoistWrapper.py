@@ -74,11 +74,24 @@ class TodoistWrapper():
         result = list(filter(filter_project_id, self.get_tasks()))
         return result  # self.api.get_tasks(project_id=project_id)
 
-    def add_item_to_project(self, project_name: str, item_name: str, section_id=None, description='', parent_id = None):
-        # quick add if neither description nor section is used (will add multiple times faster
+    def add_item_to_project(self, project_name: str, item_name: str, section_id=None, description='', parent_id=None, labels=None):
+        # quick add if neither description nor section is used (will add multiple times faster)
         if section_id is None and parent_id is None:
+            # project name must always exist
             quick_add_string = f'{item_name} #{project_name}'
 
+            if labels is not None:
+                existing_labels = self.api.get_labels()
+
+                for label in labels:
+                    # only create label if it does not exist. otherwise self.api.add_label will throw exception
+                    if not any(existing_label for existing_label in existing_labels if existing_label.name == label):
+                        self.api.add_label(label)
+
+                    # each label with @ designator
+                    quick_add_string = f'{quick_add_string} @{label}'
+
+            # description as the last part. Otherwise every control-character will be interpreted just as a description
             if description is not '':
                 quick_add_string = f'{quick_add_string} //{description}'
 
