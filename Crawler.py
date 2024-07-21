@@ -84,7 +84,31 @@ class Crawler():
         self.log('Initialized clientKey and AppId')
 
     def download_url(self, url):
-        return requests.get(url).text
+        cookies = {
+            'tmde-lang': 'de-DE',
+            'OptanonAlertBoxClosed': '2024-07-14T11:01:14.120Z',
+            'OptanonConsent': 'isGpcEnabled=0&datestamp=Sun+Jul+21+2024+21%3A29%3A14+GMT%2B0200+(Mitteleurop%C3%A4ische+Sommerzeit)&version=202405.2.0&browserGpcFlag=0&isIABGlobal=false&hosts=&landingPath=NotLandingPage&groups=C0002%3A0%2CC0001%3A1%2CC0003%3A0%2CC0004%3A0&geolocation=DE%3BBW&AwaitingReconsent=false',
+        }
+
+        headers = {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
+            'cache-control': 'max-age=0',
+            # 'cookie': 'tmde-lang=de-DE; OptanonAlertBoxClosed=2024-07-14T11:01:14.120Z; OptanonConsent=isGpcEnabled=0&datestamp=Sun+Jul+21+2024+21%3A29%3A14+GMT%2B0200+(Mitteleurop%C3%A4ische+Sommerzeit)&version=202405.2.0&browserGpcFlag=0&isIABGlobal=false&hosts=&landingPath=NotLandingPage&groups=C0002%3A0%2CC0001%3A1%2CC0003%3A0%2CC0004%3A0&geolocation=DE%3BBW&AwaitingReconsent=false',
+            'priority': 'u=0, i',
+            'referer': 'https://cookidoo.de/search/de-DE?countries=de&languages=de&accessories=includingBladeCoverWithPeeler&query=granola',
+            'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        }
+
+        return requests.get(url, cookies=cookies, headers=headers).text
 
     def queryRecipes(self,searchPhrase):
         headers = {
@@ -130,28 +154,29 @@ class Crawler():
         html = self.download_url(url)
         soup = BeautifulSoup(html, 'html.parser')        
         
-        ingredientStrings = []
+        ingredient_strings = []
 
         for i in range(0,10):
-            ingredientRootNode = soup.find(id=f'ingredients-{str(i)}')
+            id_string = f'ingredients-{str(i)}'
+            ingredient_root_node = soup.find(id=id_string)
 
-            if not ingredientRootNode:
+            if not ingredient_root_node:
                 break
 
-            for ingredientNode in ingredientRootNode.children:
+            for ingredientNode in ingredient_root_node.children:
                 if not hasattr(ingredientNode, 'id'):# or not 'ingredient-' in ingredientNode.id:
                     continue
 
-                ingredientStringPure = str(ingredientNode.text)
-                splits = ingredientStringPure.split('\n')
+                ingredient_string_pure = str(ingredientNode.text)
+                splits = ingredient_string_pure.split('\n')
 
-                ingredientStringUnescaped = ''
+                ingredient_string_unescaped = ''
                 for split in splits: 
-                    ingredientStringUnescaped += (' ' + split.strip())
+                    ingredient_string_unescaped += (' ' + split.strip())
 
-                ingredientStringUnescaped = ingredientStringUnescaped.replace('  ', ' ')
+                ingredient_string_unescaped = ingredient_string_unescaped.replace('  ', ' ')
             
-                if ingredientStringUnescaped is not None:
-                    ingredientStrings.append(ingredientStringUnescaped.strip())
+                if ingredient_string_unescaped is not None:
+                    ingredient_strings.append(ingredient_string_unescaped.strip())
 
-        return ingredientStrings
+        return ingredient_strings

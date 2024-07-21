@@ -70,7 +70,6 @@ self = selfMockup()
 
 crawler = Crawler(print)
 
-
 # results = crawler.queryRecipes('soljanka')
 
 def getDesiredRecipeId(recipeIdsAndNames, retries):
